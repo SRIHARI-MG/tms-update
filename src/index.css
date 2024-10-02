@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+html body {
+  height: 100vh;
+  font-family: "Poppins", sans-serif;
+}
+
+@layer base {
+  :root {
+    --gradient: linear-gradient(to top left, #231557, #44107a, #ff1361);
+    --background: 269 98.05% 98.42%;
+    --foreground: 269 6.1% 0.84%;
+    --muted: 269 6.1% 92.1%;
+    --muted-foreground: 269 3.05% 42.1%;
+    --popover: 269 41.2% 92.1%;
+    --popover-foreground: 269 6.1% 1.05%;
+    --card: 269 41.2% 92.1%;
+    --card-foreground: 269 6.1% 1.05%;
+    --border: 269 11.1% 89.84%;
+    --input: 269 11.1% 89.84%;
+    --primary: 269 61% 21%;
+    --primary-foreground: 269 1.22% 92.1%;
+    --secondary: 269 3.05% 96.05%;
+    --secondary-foreground: 269 4.66% 12.1%;
+    --accent: 269 3.05% 96.05%;
+    --accent-foreground: 269 4.66% 12.1%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --ring: 269 61% 21%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --gradient: linear-gradient(to top left, #130b2e, #22053d, #8a0b36);
+    --background: 269 70% 5.8%;
+    --foreground: 269 6.1% 95.16%;
+    --muted: 269 50% 15%;
+    --muted-foreground: 269 3.05% 55%;
+    --popover: 269 65% 9.9%;
+    --popover-foreground: 269 6.1% 95.16%;
+    --card: 269 65% 9.9%;
+    --card-foreground: 269 6.1% 95.16%;
+    --border: 269 50% 15%;
+    --input: 269 50% 15%;
+    --primary: 269 61% 50%;
+    --primary-foreground: 269 1.22% 95.16%;
+    --secondary: 269 30% 20%;
+    --secondary-foreground: 269 4.66% 95.16%;
+    --accent: 269 30% 20%;
+    --accent-foreground: 269 4.66% 95.16%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 269 6.1% 95.16%;
+    --ring: 269 61% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
