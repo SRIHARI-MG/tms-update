@@ -1,20 +1,29 @@
 // src/utils/authHandler.ts
 
 import { AxiosError, AxiosInstance } from "axios";
+import { NavigateFunction } from "react-router-dom";
 
-export const logoutEvent = new Event("logout");
-
-export const setupAuthInterceptor = (api: AxiosInstance) => {
+export const setupAuthInterceptor = (
+  api: AxiosInstance,
+  navigate: NavigateFunction,
+  showToast: (message: string) => void
+) => {
   api.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
       if (error.response?.status === 403) {
-        // Token has expired
-        alert("Your session has expired. Please login again.");
-        localStorage.removeItem("authToken");
-        window.dispatchEvent(logoutEvent); // Dispatch event to notify logout
+        handleLogout(navigate, showToast);
       }
       return Promise.reject(error);
     }
   );
+};
+
+export const handleLogout = (
+  navigate: NavigateFunction,
+  showToast: (message: string) => void
+) => {
+  localStorage.clear();
+  showToast("You have been successfully logged out.");
+  navigate("/login", { replace: true });
 };

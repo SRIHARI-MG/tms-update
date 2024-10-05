@@ -17,6 +17,8 @@ import { jwtDecode } from "jwt-decode";
 import api from "@/api/apiService";
 import { toast } from "sonner";
 import moment from "moment";
+import { useToast } from "@/hooks/use-toast";
+import { handleLogout } from "@/utils/authHandler";
 
 interface DecodedToken {
   role: string;
@@ -79,6 +81,7 @@ interface UserDetails {
 
 export default function Header() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [userRole, setUserRole] = useState("");
   const [userProfileDetails, setUserProfileDetails] =
     useState<UserDetails | null>(null);
@@ -86,6 +89,16 @@ export default function Header() {
   const [decoded, setDecoded] = useState<DecodedToken | null>(null);
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const showToast = React.useCallback(
+    (message: string) => {
+      toast({
+        title: "Notification",
+        description: message,
+        variant: "default",
+      });
+    },
+    [toast]
+  );
 
   const [userDetails, setUserDetails] = useState({
     firstName: "",
@@ -211,10 +224,8 @@ export default function Header() {
     setNavItems(roleBasedNavItems[userRole] || []);
   }, [userRole]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("role");
-    navigate("/login");
+  const onLogout = () => {
+    handleLogout(navigate, showToast);
   };
 
   const isActive = (path: string) => {
@@ -316,7 +327,7 @@ export default function Header() {
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
+              <DropdownMenuItem className="text-red-600" onClick={onLogout}>
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>

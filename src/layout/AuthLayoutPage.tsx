@@ -11,6 +11,7 @@ import LP8 from "@/assets/lp8.svg";
 import LP9 from "@/assets/lp9.svg";
 import LP10 from "@/assets/lp10.svg";
 import InteractiveIconCloud from "@/components/ui/orbiting-images";
+import { Toaster } from "@/components/ui/toaster";
 // import IconCloud from "@/components/ui/icon-cloud";
 
 type AuthLayoutProps = {
@@ -86,6 +87,7 @@ export default function AuthLayout({
         </div>
         {children}
       </div>
+      <Toaster />
     </div>
   );
 }

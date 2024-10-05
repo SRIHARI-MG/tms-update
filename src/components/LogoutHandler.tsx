@@ -7,7 +7,7 @@ const LogoutHandler: React.FC = () => {
 
   useEffect(() => {
     const handleLogout = () => {
-      localStorage.removeItem("authToken");
+      localStorage.clear();
       navigate("/login"); // Redirect to login
     };
 

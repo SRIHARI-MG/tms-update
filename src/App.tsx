@@ -22,108 +22,105 @@ function App() {
   const token = localStorage.getItem("authToken");
 
   return (
-    <>
-      <LogoutHandler />
-      <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+    <Routes>
+      {/* Public routes */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-        {/* Protected routes wrapper */}
-        <Route
-          element={
-            token ? (
-              <LayoutPage role={userRole!} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        >
-          {/* Employee Routes */}
-          <Route path="/employee">
-            <Route
-              path="dashboard"
-              element={
-                <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
-                  <EmployeeDashboard />
-                </AuthMiddleware>
-              }
-            />
-            <Route
-              path="profile"
-              element={
-                <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
-                  <ProfilePage />
-                </AuthMiddleware>
-              }
-            />
-          </Route>
-
-          {/* HR Routes */}
-          <Route path="/hr">
-            <Route
-              path="dashboard"
-              element={
-                <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
-                  <HrDashboard />
-                </AuthMiddleware>
-              }
-            />
-            <Route
-              path="profile"
-              element={
-                <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
-                  <ProfilePage />
-                </AuthMiddleware>
-              }
-            />
-          </Route>
-
-          {/* Manager Routes */}
-          <Route path="/manager">
-            <Route
-              path="dashboard"
-              element={
-                <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
-                  <ManagerDashboard />
-                </AuthMiddleware>
-              }
-            />
-            <Route
-              path="profile"
-              element={
-                <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
-                  <ProfilePage />
-                </AuthMiddleware>
-              }
-            />
-          </Route>
-
-          {/* Add other role routes similarly */}
+      {/* Protected routes wrapper */}
+      <Route
+        element={
+          token ? (
+            <LayoutPage role={userRole!} />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      >
+        {/* Employee Routes */}
+        <Route path="/employee">
+          <Route
+            path="dashboard"
+            element={
+              <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
+                <EmployeeDashboard />
+              </AuthMiddleware>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
+                <ProfilePage />
+              </AuthMiddleware>
+            }
+          />
         </Route>
 
-        {/* Default redirect */}
-        <Route
-          path="/"
-          element={
-            userRole ? (
-              <Navigate
-                to={
-                  defaultRedirectPerRole[userRole as keyof typeof Roles] ||
-                  "/login"
-                }
-                replace
-              />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
+        {/* HR Routes */}
+        <Route path="/hr">
+          <Route
+            path="dashboard"
+            element={
+              <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
+                <HrDashboard />
+              </AuthMiddleware>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
+                <ProfilePage />
+              </AuthMiddleware>
+            }
+          />
+        </Route>
 
-        {/* Not found route */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </>
+        {/* Manager Routes */}
+        <Route path="/manager">
+          <Route
+            path="dashboard"
+            element={
+              <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
+                <ManagerDashboard />
+              </AuthMiddleware>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
+                <ProfilePage />
+              </AuthMiddleware>
+            }
+          />
+        </Route>
+
+        {/* Add other role routes similarly */}
+      </Route>
+
+      {/* Default redirect */}
+      <Route
+        path="/"
+        element={
+          userRole ? (
+            <Navigate
+              to={
+                defaultRedirectPerRole[userRole as keyof typeof Roles] ||
+                "/login"
+              }
+              replace
+            />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      {/* Not found route */}
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 }
 

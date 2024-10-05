@@ -19,7 +19,7 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import moment from "moment";
 import {
   Select,
@@ -42,22 +42,13 @@ import {
 import api from "@/api/apiService";
 import BankDetailsSection from "./BankDetailsSection";
 import ChangePasswordSection from "./ChangePasswordSection";
+import PhoneInput from "@/components/ui/phone-input";
+import DocumentsSection from "./DocumentsSection";
+import CertificatesSection from "./CertificatesSection";
+import React from "react";
+import { useToast } from "@/hooks/use-toast";
+import { handleLogout } from "@/utils/authHandler";
 
-interface PasswordFormValues {
-  oldPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-interface EmployeeBankDetail {
-  bankMobileNumber: string;
-  userId: string;
-  accountHolderName: string;
-  ifscCode: string;
-  accountNumber: string;
-  bankName: string;
-  branchName: string;
-  chequeProofUrl: any;
-}
 interface UserDetails {
   key: string;
   profileUrl: string;
@@ -108,60 +99,34 @@ interface UserDetails {
   alternateMobileNumber: string;
 }
 
-interface FileAttachment {
-  key: number;
+interface DocumentDetails {
+  number: string;
+  name: string;
   file: File | null;
 }
 
-const PhoneInput = ({ value, onChange, readOnly, countryCodes }: any) => (
-  <div className="flex">
-    <Select
-      value={value.countryCode}
-      onValueChange={(selectedCode) =>
-        onChange({ countryCode: selectedCode, number: value.number })
-      }
-      disabled={readOnly}
-    >
-      <SelectTrigger className="w-[80px]">
-        <SelectValue placeholder={value.countryCode || "+1"} />
-      </SelectTrigger>
-      <SelectContent>
-        {countryCodes.map((code: string) => (
-          <SelectItem key={code} value={code}>
-            {code}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-    <Input
-      type="tel"
-      value={value.number}
-      onChange={(e) =>
-        onChange({ countryCode: value.countryCode, number: e.target.value })
-      }
-      readOnly={readOnly}
-      className={`flex-1 ml-2 ${
-        readOnly ? "bg-primary/10 text-gray-700" : ""
-      } border-gray-300`}
-    />
-  </div>
-);
+interface AadharDetails extends DocumentDetails {
+  mobileNumber: string;
+}
+
+interface Documents {
+  aadhar: AadharDetails;
+  pan: DocumentDetails;
+  passport: DocumentDetails;
+}
 
 export default function ProfilePage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const userProfileDetails: UserDetails = location.state || {};
-  const [showPassword, setShowPassword] = useState({
-    current: false,
-    new: false,
-    confirm: false,
-  });
   const [selectedNav, setSelectedNav] = useState("Profile Details");
   const [isEditing, setIsEditing] = useState(false);
   const [editedDetails, setEditedDetails] = useState<any>({
     ...userProfileDetails,
   });
   const [errors, setErrors] = useState<any>({});
+  const [isEditingDocuments, setIsEditingDocuments] = useState<boolean>(false);
 
   const [phoneNumbers, setPhoneNumbers] = useState({
     mobileNumber: {
@@ -261,6 +226,17 @@ export default function ProfilePage() {
     "9.30 AM - 6.30 PM",
     "Flexible Shift",
   ];
+
+  const showToast = React.useCallback(
+    (message: string) => {
+      toast({
+        title: "Notification",
+        description: message,
+        variant: "default",
+      });
+    },
+    [toast]
+  );
 
   const handlePhoneChange = (field: any, value: any) => {
     setPhoneNumbers((prev) => ({ ...prev, [field]: value }));
@@ -485,9 +461,24 @@ export default function ProfilePage() {
     // You might want to show a success message or update the UI
   };
 
+  const handleEditDocuments = () => setIsEditingDocuments(true);
+
+  const handleSaveDocuments = async (updatedDocuments: Documents) => {
+    try {
+      // Make API call to save updated documents
+      // await api.put(`/api/documents/${userProfileDetails.userId}`, updatedDocuments);
+      setIsEditingDocuments(false);
+      // Optionally, update local state or refetch data
+    } catch (error) {
+      console.error("Error saving documents:", error);
+      // Handle error (e.g., show error message)
+    }
+  };
+
+  const handleCancelDocuments = () => setIsEditingDocuments(false);
+
   const handleLogoutClick = () => {
-    localStorage.clear();
-    navigate("/login");
+    handleLogout(navigate, showToast);
   };
 
   return (
@@ -860,6 +851,18 @@ export default function ProfilePage() {
             )}
             {selectedNav === "Bank Details" && (
               <BankDetailsSection userId={userProfileDetails.userId} />
+            )}
+            {selectedNav === "Documents" && (
+              <DocumentsSection
+                userId={userProfileDetails.userId}
+                isEditing={isEditingDocuments}
+                onEdit={handleEditDocuments}
+                onSave={handleSaveDocuments}
+                onCancel={handleCancelDocuments}
+              />
+            )}
+            {selectedNav === "Certifications" && (
+              <CertificatesSection userId={userProfileDetails.userId} />
             )}
             {selectedNav === "Change Password" && <ChangePasswordSection />}
           </CardContent>
