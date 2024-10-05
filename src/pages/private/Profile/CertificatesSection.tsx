@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -23,9 +23,38 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, Eye, Pencil, Plus, Trash2, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/api/apiService";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+const formSchema = z.object({
+  certificateName: z.string().min(1, "Certificate name is required"),
+  certificateNumber: z.string().min(1, "Certificate number is required"),
+  credentialId: z.string(),
+  certificateUrl: z.string(),
+  description: z.string().min(1, "Description is required"),
+  certificateFile: z.instanceof(File, {
+    message: "Certificate file is required",
+  }),
+});
 
 interface Certificate {
   certificateId: string;
@@ -55,16 +84,18 @@ export default function CertificatesSection({
   const [isAddingCertificate, setIsAddingCertificate] =
     useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const { toast } = useToast();
 
-  const [newCertificate, setNewCertificate] = useState<NewCertificate>({
-    certificateName: "",
-    certificateUrl: "",
-    credentialId: "",
-    certificateNumber: "",
-    description: "",
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      certificateName: "",
+      certificateNumber: "",
+      credentialId: "",
+      certificateUrl: "",
+      description: "",
+    },
   });
 
   const itemsPerPage = 5;
@@ -80,7 +111,7 @@ export default function CertificatesSection({
         response: { data: Certificate[] };
       }>(`/api/v1/certificate/fetch-certificates-by-employeeId/${userId}`);
       if (response.data.status === "OK") {
-        setCertificates(response.data.response.data);
+        setCertificates(response.data.response.data?.reverse());
       }
     } catch (error) {
       console.error("Error fetching certificates:", error);
@@ -88,45 +119,49 @@ export default function CertificatesSection({
   };
 
   const handleFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
+    field: any
   ): void => {
     const file = event.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
+      field.onChange(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ): void => {
-    const { name, value } = e.target;
-    setNewCertificate((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   const handleCancel = (): void => {
     setIsAddingCertificate(false);
-    setNewCertificate({
-      certificateName: "",
-      certificateUrl: "",
-      credentialId: "",
-      certificateNumber: "",
-      description: "",
-    });
-    setSelectedFile(null);
+    form.reset();
     setPreviewUrl("");
   };
 
-  const handleSubmit = async (): Promise<void> => {
-    // Add your API call here
-    toast({
-      title: "Request Submitted",
-      description: "Your certificate has been submitted for approval.",
-    });
-    handleCancel();
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const formData = new FormData();
+      formData.append("certificateFile", values.certificateFile);
+
+      const requestedData = {
+        certificateName: values.certificateName,
+        certificateNumber: values.certificateNumber,
+        description: values.description,
+      };
+
+      formData.append("requestedData", JSON.stringify(requestedData));
+
+      await api.put("/api/v1/certificate/update-request", formData);
+
+      toast({
+        title: "Request Submitted",
+        description: "Your certificate has been submitted for approval.",
+      });
+      handleCancel();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit certificate request.",
+        variant: "destructive",
+      });
+    }
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -134,104 +169,194 @@ export default function CertificatesSection({
   const currentItems = certificates.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(certificates.length / itemsPerPage);
 
+  const FilePreview = ({ url }: { url: string }) => {
+    return (
+      <iframe
+        src={`${url}#toolbar=0`}
+        className="w-full h-full"
+        title="PDF Preview"
+      />
+    );
+  };
+
   if (isAddingCertificate) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Add New Certificate</CardTitle>
+          <CardTitle className="text-xl">Add New Certificate</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="certificateFile">Certificate File*</Label>
-            <Input
-              id="certificateFile"
-              type="file"
-              onChange={handleFileChange}
-              required
-            />
-            {previewUrl && (
-              <div className="mt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => window.open(previewUrl)}
-                >
-                  Preview File
-                </Button>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="certificateName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Certificate Name<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="certificateNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Certificate Number
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="credentialId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Credential ID</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="certificateUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Certificate URL</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="certificateName">Certificate Name*</Label>
-            <Input
-              id="certificateName"
-              name="certificateName"
-              value={newCertificate.certificateName}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="certificateUrl">Certificate URL</Label>
-            <Input
-              id="certificateUrl"
-              name="certificateUrl"
-              value={newCertificate.certificateUrl}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="credentialId">Credential ID</Label>
-            <Input
-              id="credentialId"
-              name="credentialId"
-              value={newCertificate.credentialId}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="certificateNumber">Certificate Number*</Label>
-            <Input
-              id="certificateNumber"
-              name="certificateNumber"
-              value={newCertificate.certificateNumber}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="description">Description*</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={newCertificate.description}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-        </CardContent>
-        <CardFooter className="flex-col space-y-2 sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-            className="w-full sm:w-auto"
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} className="w-full sm:w-auto">
-            Request for Approval
-          </Button>
-        </CardFooter>
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Description<span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="certificateFile"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Certificate File</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center gap-5">
+                        <input
+                          type="file"
+                          onChange={(e) => handleFileChange(e, field)}
+                          accept=".pdf"
+                          className="hidden"
+                          id="certificateFile"
+                        />
+                        <Button
+                          type="button"
+                          variant="default"
+                          onClick={() =>
+                            document.getElementById("certificateFile")?.click()
+                          }
+                          className="w-fit"
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          Upload File
+                        </Button>
+                        {previewUrl && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" className="w-fit">
+                                <Eye className="mr-2 h-4 w-4" />
+                                Preview
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[60vw] sm:max-h-[80vh] md:max-w-[40vw] md:max-h-[90vh] overflow-auto">
+                              <DialogHeader>
+                                <DialogTitle>Certificate Preview</DialogTitle>
+                              </DialogHeader>
+                              <div className="mt-4 h-[60vh] md:h-[80vh]">
+                                <iframe
+                                  src={`${previewUrl}#toolbar=0`}
+                                  className="w-full h-full"
+                                  title="PDF Preview"
+                                />
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+            <CardFooter className="flex-col space-y-2 sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="w-full sm:w-auto">
+                Request for Approval
+              </Button>
+            </CardFooter>
+          </form>
+        </Form>
       </Card>
     );
   }
 
+  const PreviewDialog = ({ url }: { url: string }) => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm">
+          <Eye className="w-4 h-4 mr-2" />
+          Preview
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[60vw] sm:max-h-[80vh] md:max-w-[40vw] md:max-h-[90vh] overflow-auto">
+        <DialogHeader>
+          <DialogTitle>Certificate Preview</DialogTitle>
+        </DialogHeader>
+        <div className="mt-4 h-[60vh] md:h-[80vh]">
+          <FilePreview url={url} />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
-    <Card>
+    <Card className="mt-5">
       <CardHeader>
         <div className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:items-center">
           <CardTitle>Certificates</CardTitle>
@@ -245,149 +370,147 @@ export default function CertificatesSection({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[200px]">Certificate Name</TableHead>
-                <TableHead className="hidden md:table-cell">Preview</TableHead>
-                <TableHead className="hidden lg:table-cell">
-                  Credential ID
-                </TableHead>
-                <TableHead className="hidden lg:table-cell">
-                  Certificate Number
-                </TableHead>
-                <TableHead className="hidden xl:table-cell w-[300px]">
-                  Description
-                </TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {currentItems.map((cert) => (
-                <TableRow
-                  key={cert.certificateId}
-                  className="hover:bg-primary/15"
-                >
-                  <TableCell className="font-medium">
-                    {cert.certificateName}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => window.open(cert.certificatePdfUrl)}
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Preview
-                    </Button>
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {cert.credentialId || "-"}
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {cert.certificateNumber}
-                  </TableCell>
-                  <TableCell
-                    className="hidden xl:table-cell max-w-[300px] truncate"
-                    title={cert.description}
-                  >
-                    {cert.description}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="hidden md:inline-flex"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="hidden md:inline-flex"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                      <Collapsible className="md:hidden">
-                        <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <ChevronDown className="w-4 h-4" />
-                          </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="space-y-2 mt-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full justify-start"
-                            onClick={() => window.open(cert.certificatePdfUrl)}
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            Preview
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full justify-start"
-                          >
-                            <Pencil className="w-4 h-4 mr-2" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full justify-start"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
-                          </Button>
-                          <div className="text-sm">
-                            <p>
-                              <strong>Credential ID:</strong>{" "}
-                              {cert.credentialId || "-"}
-                            </p>
-                            <p>
-                              <strong>Certificate Number:</strong>{" "}
-                              {cert.certificateNumber}
-                            </p>
-                            <p>
-                              <strong>Description:</strong> {cert.description}
-                            </p>
-                          </div>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        {certificates.length > itemsPerPage && (
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="w-full sm:w-auto"
-            >
-              Previous
-            </Button>
-            <span className="py-2">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="w-full sm:w-auto"
-            >
-              Next
-            </Button>
+        {certificates.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No certificates found. Click 'Add Certificate' to get started.
           </div>
+        ) : (
+          <>
+            <div className="rounded-md border border-gray-200 overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 hover:bg-gray-50">
+                    <TableHead className="w-[200px] font-semibold text-gray-600 border-b border-r">
+                      Certificate Name
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell font-semibold text-gray-600 border-b border-r">
+                      Preview
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell font-semibold text-gray-600 border-b border-r">
+                      Credential ID
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell font-semibold text-gray-600 border-b border-r">
+                      Certificate Number
+                    </TableHead>
+                    <TableHead className="hidden xl:table-cell w-[300px] font-semibold text-gray-600 border-b border-r">
+                      Description
+                    </TableHead>
+                    <TableHead className="text-right font-semibold text-gray-600 border-b">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {currentItems.map((cert, index) => (
+                    <TableRow
+                      key={cert.certificateId}
+                      className={`hover:bg-primary/15 bg-primary/5 ${
+                        index !== currentItems.length - 1 ? "border-b" : ""
+                      }`}
+                    >
+                      <TableCell className="font-medium border-r">
+                        {cert.certificateName}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell border-r">
+                        <PreviewDialog url={cert.certificatePdfUrl} />
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell border-r">
+                        {cert.credentialId || "-"}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell border-r">
+                        {cert.certificateNumber}
+                      </TableCell>
+                      <TableCell
+                        className="hidden xl:table-cell max-w-[300px] truncate border-r"
+                        title={cert.description}
+                      >
+                        {cert.description}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hidden md:inline-flex"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hidden md:inline-flex"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                          <Collapsible className="md:hidden">
+                            <CollapsibleTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <ChevronDown className="w-4 h-4" />
+                              </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="space-y-2 mt-2">
+                              <PreviewDialog url={cert.certificatePdfUrl} />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full justify-start"
+                              >
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full justify-start"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                              </Button>
+                              <div className="text-sm space-y-1">
+                                <p>
+                                  <strong>Credential ID:</strong>{" "}
+                                  {cert.credentialId || "-"}
+                                </p>
+                                <p>
+                                  <strong>Certificate Number:</strong>{" "}
+                                  {cert.certificateNumber}
+                                </p>
+                                <p>
+                                  <strong>Description:</strong>{" "}
+                                  {cert.description}
+                                </p>
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex justify-start mt-4 space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <span className="py-2 px-3 bg-primary/10 rounded">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

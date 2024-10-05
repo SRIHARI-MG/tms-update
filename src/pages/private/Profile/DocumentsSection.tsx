@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -104,7 +104,36 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
   onCancel,
 }) => {
   const [showAlert, setShowAlert] = useState(false);
-  const [previews, setPreviews] = useState<Previews>({
+  const [originalValues, setOriginalValues] =
+    useState<FormValues>(defaultValues);
+  const [files, setFiles] = useState<{ [key: string]: File | null }>({
+    aadhar: null,
+    pan: null,
+    passport: null,
+  });
+  const fileInputRefs = {
+    aadhar: useRef<HTMLInputElement>(null),
+    pan: useRef<HTMLInputElement>(null),
+    passport: useRef<HTMLInputElement>(null),
+  };
+  const [placeholders] = useState({
+    aadhar: {
+      number: "XXXX XXXX XXXX",
+      name: "Enter Aadhar Name",
+      mobileNumber: "+91XXXXXXXXXX",
+    },
+    pan: {
+      number: "ABCDE1234F",
+      name: "Enter PAN Name",
+    },
+    passport: {
+      number: "A1234567",
+      name: "Enter Passport Name",
+    },
+  });
+  const [tempFileUrls, setTempFileUrls] = useState<{
+    [key: string]: string | null;
+  }>({
     aadhar: null,
     pan: null,
     passport: null,
@@ -124,23 +153,15 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         // const response = await api.get(`/api/documents/${userId}`);
         // const fetchedDocuments = response.data;
 
-        // For now, using placeholder values
-        const placeholderValues: FormValues = {
-          aadhar: {
-            number: "XXXX XXXX XXXX",
-            name: "Enter Aadhar Name",
-            mobileNumber: "+91XXXXXXXXXX",
-            file: null,
-          },
-          pan: { number: "ABCDE1234F", name: "Enter PAN Name", file: null },
-          passport: {
-            number: "A1234567",
-            name: "Enter Passport Name",
-            file: null,
-          },
+        // For now, using empty values as if no data exists
+        const emptyValues: FormValues = {
+          aadhar: { number: "", name: "", mobileNumber: "", file: null },
+          pan: { number: "", name: "", file: null },
+          passport: { number: "", name: "", file: null },
         };
 
-        form.reset(placeholderValues);
+        setOriginalValues(emptyValues);
+        form.reset(emptyValues);
       } catch (error) {
         console.error("Error fetching documents:", error);
       }
@@ -149,22 +170,49 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
     fetchDocuments();
   }, [userId, form]);
 
-  const handleFileChange = (docType: keyof FormValues, file: File) => {
-    form.setValue(`${docType}.file` as any, file);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviews((prev) => ({ ...prev, [docType]: reader.result as string }));
+  useEffect(() => {
+    return () => {
+      Object.values(tempFileUrls).forEach((url) => {
+        if (url) URL.revokeObjectURL(url);
+      });
     };
-    reader.readAsDataURL(file);
+  }, [tempFileUrls]);
+
+  const handleFileChange = (docType: keyof FormValues, file: File) => {
+    setFiles((prev) => ({ ...prev, [docType]: file }));
+
+    if (tempFileUrls[docType]) {
+      URL.revokeObjectURL(tempFileUrls[docType]!);
+    }
+
+    const newTempUrl = URL.createObjectURL(file);
+    setTempFileUrls((prev) => ({ ...prev, [docType]: newTempUrl }));
   };
+
   const handleCancel = () => {
-    form.reset();
-    setPreviews({
+    // Reset form to original values
+    form.reset(originalValues);
+
+    // Clear all uploaded files
+    setFiles({
       aadhar: null,
       pan: null,
       passport: null,
     });
+
+    // Revoke all temporary file URLs
+    Object.values(tempFileUrls).forEach((url) => {
+      if (url) URL.revokeObjectURL(url);
+    });
+
+    // Reset temporary file URLs
+    setTempFileUrls({
+      aadhar: null,
+      pan: null,
+      passport: null,
+    });
+
+    // Call the onCancel prop
     onCancel();
   };
 
@@ -216,57 +264,103 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
     }
   };
 
+  const FilePreview = ({ url }: { url: string }) => {
+    return (
+      <iframe
+        src={`${url}#toolbar=0`}
+        className="w-full h-full"
+        title="PDF Preview"
+      />
+    );
+  };
+
   const renderFileUpload = (docType: keyof FormValues, label: string) => (
     <div className="space-y-2">
       <Label>{label}</Label>
-      <div className="flex items-center space-x-2">
-        <Input
+      <div className="flex items-center gap-5">
+        <input
           type="file"
+          ref={fileInputRefs[docType]}
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) handleFileChange(docType, file);
           }}
+          accept=".pdf"
           className="hidden"
-          id={`${docType}-file`}
+          disabled={!isEditing}
         />
         <Button
-          onClick={() => document.getElementById(`${docType}-file`)?.click()}
-          variant="outline"
           type="button"
+          variant="default"
+          onClick={() => fileInputRefs[docType].current?.click()}
           disabled={!isEditing}
+          className="w-fit"
         >
           <Upload className="mr-2 h-4 w-4" />
           Upload File
         </Button>
-        {previews[docType] && (
+        {(files[docType] || tempFileUrls[docType]) && (
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" type="button">
+              <Button variant="outline" className="w-fit">
                 <Eye className="mr-2 h-4 w-4" />
                 Preview
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[80vw] sm:max-h-[80vh] overflow-auto">
+            <DialogContent className="sm:max-w-[60vw] sm:max-h-[80vh] md:max-w-[40vw] md:max-h-[90vh] overflow-auto">
               <DialogHeader>
                 <DialogTitle>{`${label} Preview`}</DialogTitle>
               </DialogHeader>
-              <div className="mt-4">
-                <img
-                  src={previews[docType] || undefined}
-                  alt={`${docType} preview`}
-                  className="max-w-full"
+              <div className="mt-4 h-[60vh] md:h-[80vh]">
+                <FilePreview
+                  url={
+                    tempFileUrls[docType] ||
+                    URL.createObjectURL(files[docType]!)
+                  }
                 />
               </div>
             </DialogContent>
           </Dialog>
         )}
       </div>
+      {files[docType] && (
+        <p className="text-sm text-gray-500">
+          Selected file: {files[docType]?.name}
+        </p>
+      )}
     </div>
+  );
+
+  // Render functions for form fields
+  const renderInputField = (
+    docType: keyof FormValues,
+    fieldName: string,
+    label: string
+  ) => (
+    <FormField
+      control={form.control}
+      name={`${docType}.${fieldName}`}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            <Input
+              {...field}
+              placeholder={!isEditing ? placeholders[docType][fieldName] : ""}
+              value={isEditing ? field.value : field.value || ""}
+              readOnly={!isEditing}
+              className={!isEditing ? "bg-primary/10 text-gray-700" : ""}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-5">
         <div className="flex justify-end space-x-2">
           {!isEditing ? (
             <Button onClick={onEdit} size="sm" type="button">
@@ -292,48 +386,12 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
           )}
         </div>
 
-        <Card>
+        <Card className="pt-5">
           <CardContent className="space-y-4">
             <h3 className="text-lg font-semibold">Aadhar Card Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="aadhar.number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Aadhar Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        readOnly={!isEditing}
-                        className={
-                          !isEditing ? "bg-primary/10 text-gray-700" : ""
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="aadhar.name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name in Aadhar</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        readOnly={!isEditing}
-                        className={
-                          !isEditing ? "bg-primary/10 text-gray-700" : ""
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {renderInputField("aadhar", "number", "Aadhar Number")}
+              {renderInputField("aadhar", "name", "Name in Aadhar")}
               <FormField
                 control={form.control}
                 name="aadhar.mobileNumber"
@@ -345,6 +403,9 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
                         value={field.value}
                         onChange={field.onChange}
                         readOnly={!isEditing}
+                        placeholder={
+                          !isEditing ? placeholders.aadhar.mobileNumber : ""
+                        }
                         countryCodes={countryCodes}
                       />
                     </FormControl>
@@ -361,44 +422,8 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
           <CardContent className="space-y-4">
             <h3 className="text-lg font-semibold">PAN Card Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="pan.number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>PAN Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        readOnly={!isEditing}
-                        className={
-                          !isEditing ? "bg-primary/10 text-gray-700" : ""
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="pan.name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name in PAN</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        readOnly={!isEditing}
-                        className={
-                          !isEditing ? "bg-primary/10 text-gray-700" : ""
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {renderInputField("pan", "number", "PAN Number")}
+              {renderInputField("pan", "name", "Name in PAN")}
             </div>
             {renderFileUpload("pan", "PAN Card")}
           </CardContent>
@@ -408,44 +433,8 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
           <CardContent className="space-y-4">
             <h3 className="text-lg font-semibold">Passport Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="passport.number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Passport Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        readOnly={!isEditing}
-                        className={
-                          !isEditing ? "bg-primary/10 text-gray-700" : ""
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="passport.name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name in Passport</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        readOnly={!isEditing}
-                        className={
-                          !isEditing ? "bg-primary/10 text-gray-700" : ""
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {renderInputField("passport", "number", "Passport Number")}
+              {renderInputField("passport", "name", "Name in Passport")}
             </div>
             {renderFileUpload("passport", "Passport")}
           </CardContent>

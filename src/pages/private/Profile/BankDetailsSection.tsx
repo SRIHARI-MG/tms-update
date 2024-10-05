@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Edit, X, CheckCircle, Eye } from "lucide-react";
+import { Edit, X, CheckCircle, Eye, Upload } from "lucide-react";
 import api from "@/api/apiService";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -46,6 +46,7 @@ export default function BankDetailsSection({ userId }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [tempFileUrl, setTempFileUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchBankDetails();
@@ -177,7 +178,7 @@ export default function BankDetailsSection({ userId }: Props) {
     return (
       <iframe
         src={`${url}#toolbar=0`}
-        className="w-full md:h-[500px]"
+        className="w-full h-full"
         title="PDF Preview"
       />
     );
@@ -266,14 +267,25 @@ export default function BankDetailsSection({ userId }: Props) {
               isEditing ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-5">
-                    <Input
-                      id={key}
+                    <input
                       type="file"
+                      ref={fileInputRef}
                       onChange={handleFileChange}
                       accept=".pdf"
-                      className="file:mr-4 file:py-2 w-fit file:px-4 file:rounded-full file:border-0 file:text-sm h-full file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
+                      className="hidden"
+                      disabled={!isEditing}
                     />
-                    {(file || tempFileUrl) && (
+                    <Button
+                      type="button"
+                      variant="default"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={!isEditing}
+                      className="w-fit"
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload File
+                    </Button>
+                    {(file || tempFileUrl || value) && (
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="outline" className="w-fit">
@@ -281,13 +293,17 @@ export default function BankDetailsSection({ userId }: Props) {
                             Preview
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[80vw] sm:max-h-[80vh] overflow-auto">
+                        <DialogContent className="sm:max-w-[60vw] sm:max-h-[80vh] md:max-w-[40vw] md:max-h-[90vh] overflow-auto">
                           <DialogHeader>
                             <DialogTitle>Cheque Proof Preview</DialogTitle>
                           </DialogHeader>
-                          <div className="mt-4">
+                          <div className="mt-4 h-[60vh] md:h-[80vh]">
                             <FilePreview
-                              url={tempFileUrl || URL.createObjectURL(file!)}
+                              url={
+                                tempFileUrl ||
+                                (file && URL.createObjectURL(file)) ||
+                                value
+                              }
                             />
                           </div>
                         </DialogContent>
@@ -310,12 +326,18 @@ export default function BankDetailsSection({ userId }: Props) {
                           Preview
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="md:max-w-[50vw] sm:max-h-[80vh] overflow-auto">
+                      <DialogContent className="sm:max-w-[60vw] sm:max-h-[80vh] md:max-w-[40vw] md:max-h-[90vh] overflow-auto">
                         <DialogHeader>
                           <DialogTitle>Cheque Proof Preview</DialogTitle>
                         </DialogHeader>
-                        <div className="mt-4">
-                          <FilePreview url={tempFileUrl || value} />
+                        <div className="mt-4 h-[60vh] md:h-[80vh]">
+                          <FilePreview
+                            url={
+                              tempFileUrl ||
+                              (file && URL.createObjectURL(file)) ||
+                              value
+                            }
+                          />
                         </div>
                       </DialogContent>
                     </Dialog>
