@@ -20,9 +20,14 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "@/layout/AuthLayoutPage";
 import { Eye, EyeOff } from "lucide-react";
+import CustomNotification from "@/components/ui/custom-notification";
+import api from "@/api/apiService";
+import { jwtDecode } from "jwt-decode";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 const formSchema = z.object({
   email: z
@@ -44,7 +49,11 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  // const [successLoggedIn, setSuccessLoggedIn] = useState<boolean>(false);
+  // const [error, setError] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,9 +63,35 @@ export default function LoginPage() {
     },
   });
 
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const response = await api.post(`/api/v1/authentication/login`, {
+        email: values.email,
+        password: values.password,
+      });
+
+      const token = response.data?.response?.data?.token;
+      const decoded: {
+        Role: string;
+      } = jwtDecode(token);
+
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("role", decoded?.Role);
+
+      toast({
+        title: "Success",
+        description: "Logged in successfully",
+        variant: "default",
+      });
+
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Here you would typically handle the login process
-    console.log(values);
+    handleSubmit(values);
   }
 
   return (
@@ -73,57 +108,59 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email or Employee ID</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter your Email or Employee ID"
-                        {...field}
-                        className="focus-visible:ring-0 focus-visible:ring-offset-0"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="space-y-2">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email or Employee ID</FormLabel>
+                      <FormControl>
                         <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Enter your password"
-                          className="focus-visible:ring-0 focus-visible:ring-offset-0"
+                          placeholder="Enter your Email or Employee ID"
                           {...field}
+                          className="focus-visible:ring-0 focus-visible:ring-offset-0"
                         />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-0 top-0"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? (
-                            <Eye size={16} />
-                          ) : (
-                            <EyeOff size={16} />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Enter your password"
+                            className="focus-visible:ring-0 focus-visible:ring-offset-0"
+                            {...field}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-0 top-0"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <Eye size={16} />
+                            ) : (
+                              <EyeOff size={16} />
+                            )}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <Button type="submit" className="w-full">
                 Login
@@ -142,6 +179,7 @@ export default function LoginPage() {
           </div>
         </CardFooter>
       </Card>
+      <Toaster />
     </AuthLayout>
   );
 }

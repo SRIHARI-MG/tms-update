@@ -24,6 +24,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AuthLayout from "@/layout/AuthLayoutPage";
+import api from "@/api/apiService";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 const formSchema = z.object({
   email: z
@@ -41,6 +44,7 @@ const formSchema = z.object({
 });
 
 export default function ForgotPasswordPage() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [success, setSuccess] = React.useState(false);
 
@@ -51,16 +55,57 @@ export default function ForgotPasswordPage() {
     },
   });
 
+  const handleSubmit = async () => {
+    const values = form.getValues();
+    try {
+      const formData = new FormData();
+      formData.append("email", values.email);
+      const response = await api.post(
+        "/api/v1/authentication/forgot-password",
+        formData
+      );
+      if (response.data.status === "OK") {
+        setSuccess(true);
+        const responseData = response?.data?.response;
+        toast({
+          title: "Success",
+          description: responseData?.message,
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again later.",
+        variant: "destructive",
+      });
+    }
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // Simulating an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setSuccess(true);
-      // Here you would typically handle the password reset process
-      console.log(values);
+      const formData = new FormData();
+      formData.append("email", values.email);
+      const response = await api.post(
+        "/api/v1/authentication/forgot-password",
+        formData
+      );
+      if (response.data.status === "OK") {
+        setSuccess(true);
+        const responseData = response?.data?.response;
+        toast({
+          title: "Success",
+          description: responseData?.message,
+          variant: "default",
+        });
+        navigate("/");
+      }
     } catch (error) {
-      form.setError("root", {
-        message: "An error occurred. Please try again.",
+      setSuccess(false);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again later.",
+        variant: "destructive",
       });
     }
   }
@@ -117,10 +162,11 @@ export default function ForgotPasswordPage() {
                   </Alert>
                 </>
               )}
-
-              <Button type="submit" className="w-full">
-                Reset Password
-              </Button>
+              {!success && (
+                <Button type="submit" className="w-full">
+                  Reset Password
+                </Button>
+              )}
             </form>
           </Form>
         </CardContent>
@@ -134,6 +180,7 @@ export default function ForgotPasswordPage() {
           </Button>
         </CardFooter>
       </Card>
+      <Toaster />
     </AuthLayout>
   );
 }
