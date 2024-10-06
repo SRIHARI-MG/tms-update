@@ -252,6 +252,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
       toast({
         title: "Success",
         description: "Documents updated successfully.",
+        variant: "default",
       });
       onSave();
     } catch (error) {

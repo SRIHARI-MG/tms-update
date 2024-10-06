@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -21,7 +21,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, Eye, Pencil, Plus, Trash2, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +28,8 @@ import api from "@/api/apiService";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -44,6 +45,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import LoadingButton from "@/components/ui/loading-button";
 
 const formSchema = z.object({
   certificateName: z.string().min(1, "Certificate name is required"),
@@ -51,9 +53,11 @@ const formSchema = z.object({
   credentialId: z.string(),
   certificateUrl: z.string(),
   description: z.string().min(1, "Description is required"),
-  certificateFile: z.instanceof(File, {
-    message: "Certificate file is required",
-  }),
+  certificateFile: z
+    .instanceof(File, {
+      message: "Certificate file is required",
+    })
+    .optional(),
 });
 
 interface Certificate {
@@ -61,14 +65,6 @@ interface Certificate {
   certificateName: string;
   certificatePdfUrl: string;
   credentialId?: string;
-  certificateNumber: string;
-  description: string;
-}
-
-interface NewCertificate {
-  certificateName: string;
-  certificateUrl: string;
-  credentialId: string;
   certificateNumber: string;
   description: string;
 }
@@ -83,8 +79,14 @@ export default function CertificatesSection({
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [isAddingCertificate, setIsAddingCertificate] =
     useState<boolean>(false);
+  const [editingCertificate, setEditingCertificate] =
+    useState<Certificate | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [certificateToDelete, setCertificateToDelete] =
+    useState<Certificate | null>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -103,6 +105,19 @@ export default function CertificatesSection({
   useEffect(() => {
     fetchCertificates();
   }, []);
+
+  useEffect(() => {
+    if (editingCertificate) {
+      form.reset({
+        certificateName: editingCertificate.certificateName,
+        certificateNumber: editingCertificate.certificateNumber,
+        credentialId: editingCertificate.credentialId || "",
+        certificateUrl: editingCertificate.certificatePdfUrl,
+        description: editingCertificate.description,
+      });
+      setPreviewUrl(editingCertificate.certificatePdfUrl);
+    }
+  }, [editingCertificate]);
 
   const fetchCertificates = async (): Promise<void> => {
     try {
@@ -125,43 +140,101 @@ export default function CertificatesSection({
     const file = event.target.files?.[0];
     if (file) {
       field.onChange(file);
+      setFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
   const handleCancel = (): void => {
-    setIsAddingCertificate(false);
-    form.reset();
+    form.reset({
+      certificateName: "",
+      certificateNumber: "",
+      credentialId: "",
+      certificateUrl: "",
+      description: "",
+    });
+    setEditingCertificate(null);
+    setFile(null);
     setPreviewUrl("");
+    setIsAddingCertificate(false);
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const formData = new FormData();
-      formData.append("certificateFile", values.certificateFile);
+      if (values.certificateFile) {
+        formData.append("certificateFile", values.certificateFile);
+      }
 
       const requestedData = {
         certificateName: values.certificateName,
         certificateNumber: values.certificateNumber,
+        credentialId: values.credentialId,
+        certificateUrl: values.certificateUrl,
         description: values.description,
       };
 
       formData.append("requestedData", JSON.stringify(requestedData));
 
+      if (editingCertificate) {
+        formData.append("certificateId", editingCertificate.certificateId);
+      }
+
       await api.put("/api/v1/certificate/update-request", formData);
 
       toast({
-        title: "Request Submitted",
-        description: "Your certificate has been submitted for approval.",
+        title: `${editingCertificate ? "Update" : "Add"} Request Submitted`,
+        description: `Your certificate has been submitted for ${
+          editingCertificate ? "update" : "addition"
+        } approval.`,
+        variant: "default",
       });
       handleCancel();
+      fetchCertificates();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to submit certificate request.",
+        description: `Failed to submit certificate ${
+          editingCertificate ? "update" : "add"
+        } request.`,
         variant: "destructive",
       });
     }
+  };
+
+  const handleEdit = (cert: Certificate) => {
+    setEditingCertificate(cert);
+    setIsAddingCertificate(true);
+  };
+  const handleDeleteClick = (cert: Certificate) => {
+    setCertificateToDelete(cert);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (certificateToDelete) {
+      try {
+        const response = await api.delete(
+          `/api/v1/certificate/delete/${certificateToDelete.certificateNumber}`
+        );
+        if (response.data.status === "OK") {
+          toast({
+            title: "Certificate Deleted",
+            description: response.data.message,
+          });
+          fetchCertificates(); // Refresh the list after deletion
+        }
+      } catch (error) {
+        console.error("Error deleting certificate:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete certificate. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+    setIsDeleteDialogOpen(false);
+    setCertificateToDelete(null);
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -183,7 +256,9 @@ export default function CertificatesSection({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">Add New Certificate</CardTitle>
+          <CardTitle className="text-xl">
+            {editingCertificate ? "Edit Certificate" : "Add New Certificate"}
+          </CardTitle>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -214,7 +289,15 @@ export default function CertificatesSection({
                         <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input
+                          {...field}
+                          readOnly={!!editingCertificate}
+                          className={`${
+                            !!editingCertificate
+                              ? "bg-primary/10 text-gray-700"
+                              : ""
+                          }`}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -269,46 +352,55 @@ export default function CertificatesSection({
                   <FormItem>
                     <FormLabel>Certificate File</FormLabel>
                     <FormControl>
-                      <div className="flex items-center gap-5">
-                        <input
-                          type="file"
-                          onChange={(e) => handleFileChange(e, field)}
-                          accept=".pdf"
-                          className="hidden"
-                          id="certificateFile"
-                        />
-                        <Button
-                          type="button"
-                          variant="default"
-                          onClick={() =>
-                            document.getElementById("certificateFile")?.click()
-                          }
-                          className="w-fit"
-                        >
-                          <Upload className="mr-2 h-4 w-4" />
-                          Upload File
-                        </Button>
-                        {previewUrl && (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" className="w-fit">
-                                <Eye className="mr-2 h-4 w-4" />
-                                Preview
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[60vw] sm:max-h-[80vh] md:max-w-[40vw] md:max-h-[90vh] overflow-auto">
-                              <DialogHeader>
-                                <DialogTitle>Certificate Preview</DialogTitle>
-                              </DialogHeader>
-                              <div className="mt-4 h-[60vh] md:h-[80vh]">
-                                <iframe
-                                  src={`${previewUrl}#toolbar=0`}
-                                  className="w-full h-full"
-                                  title="PDF Preview"
-                                />
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-5">
+                          <input
+                            type="file"
+                            onChange={(e) => handleFileChange(e, field)}
+                            accept=".pdf"
+                            className="hidden"
+                            id="certificateFile"
+                          />
+                          <Button
+                            type="button"
+                            variant="default"
+                            onClick={() =>
+                              document
+                                .getElementById("certificateFile")
+                                ?.click()
+                            }
+                            className="w-fit"
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            Upload File
+                          </Button>
+                          {previewUrl && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" className="w-fit">
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  Preview
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[60vw] sm:max-h-[80vh] md:max-w-[40vw] md:max-h-[90vh] overflow-auto">
+                                <DialogHeader>
+                                  <DialogTitle>Certificate Preview</DialogTitle>
+                                </DialogHeader>
+                                <div className="mt-4 h-[60vh] md:h-[80vh]">
+                                  <iframe
+                                    src={`${previewUrl}#toolbar=0`}
+                                    className="w-full h-full"
+                                    title="PDF Preview"
+                                  />
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                        </div>
+                        {file && (
+                          <p className="text-sm text-gray-500">
+                            Selected file: {file.name}
+                          </p>
                         )}
                       </div>
                     </FormControl>
@@ -326,9 +418,9 @@ export default function CertificatesSection({
               >
                 Cancel
               </Button>
-              <Button type="submit" className="w-full sm:w-auto">
+              <LoadingButton type="submit" className="w-full sm:w-auto">
                 Request for Approval
-              </Button>
+              </LoadingButton>
             </CardFooter>
           </form>
         </Form>
@@ -432,6 +524,7 @@ export default function CertificatesSection({
                             variant="ghost"
                             size="sm"
                             className="hidden md:inline-flex"
+                            onClick={() => handleEdit(cert)}
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>
@@ -439,6 +532,7 @@ export default function CertificatesSection({
                             variant="ghost"
                             size="sm"
                             className="hidden md:inline-flex"
+                            onClick={() => handleDeleteClick(cert)}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -454,6 +548,7 @@ export default function CertificatesSection({
                                 variant="ghost"
                                 size="sm"
                                 className="w-full justify-start"
+                                onClick={() => handleEdit(cert)}
                               >
                                 <Pencil className="w-4 h-4 mr-2" />
                                 Edit
@@ -462,6 +557,7 @@ export default function CertificatesSection({
                                 variant="ghost"
                                 size="sm"
                                 className="w-full justify-start"
+                                onClick={() => handleDeleteClick(cert)}
                               >
                                 <Trash2 className="w-4 h-4 mr-2" />
                                 Delete
@@ -513,6 +609,30 @@ export default function CertificatesSection({
           </>
         )}
       </CardContent>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            Are you sure you want to delete the certificate "
+            {certificateToDelete?.certificateName}"? This action cannot be
+            undone.
+          </DialogDescription>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

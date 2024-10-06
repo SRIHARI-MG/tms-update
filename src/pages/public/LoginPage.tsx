@@ -29,6 +29,7 @@ import api from "@/api/apiService";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { defaultRedirectPerRole, Roles } from "@/utils/roleConfig";
+import LoadingButton from "@/components/ui/loading-button";
 
 const formSchema = z.object({
   email: z
@@ -169,9 +170,9 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
+              <LoadingButton type="submit" className="w-full">
                 Login
-              </Button>
+              </LoadingButton>
             </form>
           </Form>
         </CardContent>

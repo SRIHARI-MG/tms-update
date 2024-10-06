@@ -24,6 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import LoadingButton from "@/components/ui/loading-button";
 
 type Props = {
   userId: string;
