@@ -17,23 +17,16 @@ const THEME_STORAGE_KEY = "theme-preference";
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  // Initialize theme from localStorage or default to 'system'
   const [theme, setThemeState] = React.useState<Theme>(() => {
     if (typeof window !== "undefined") {
-      const savedTheme = localStorage.getItem(
-        THEME_STORAGE_KEY
-      ) as Theme | null;
-      return savedTheme || "system";
+      return (localStorage.getItem(THEME_STORAGE_KEY) as Theme) || "system";
     }
     return "system";
   });
 
-  // Wrapper function to update both state and localStorage
   const setTheme = React.useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(THEME_STORAGE_KEY, newTheme);
-    }
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
   }, []);
 
   React.useEffect(() => {
@@ -51,10 +44,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [theme]);
 
-  // Listen for system theme changes if theme is set to 'system'
   React.useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
     const handleChange = () => {
       if (theme === "system") {
         const root = window.document.documentElement;

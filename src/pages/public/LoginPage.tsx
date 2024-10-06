@@ -65,7 +65,8 @@ export default function LoginPage() {
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      localStorage.clear();
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("role");
       const response = await api.post(`/api/v1/authentication/login`, {
         email: values.email,
         password: values.password,

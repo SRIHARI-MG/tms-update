@@ -23,7 +23,8 @@ export const handleLogout = (
   navigate: NavigateFunction,
   showToast: (message: string) => void
 ) => {
-  localStorage.clear();
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("role");
   showToast("You have been successfully logged out.");
   navigate("/login", { replace: true });
 };
