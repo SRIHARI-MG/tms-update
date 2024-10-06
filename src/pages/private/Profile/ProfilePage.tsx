@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
-  User,
   Briefcase,
   FileText,
   Award,
@@ -18,6 +17,7 @@ import {
   Camera,
   ChevronUp,
   ChevronDown,
+  User2,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import moment from "moment";
@@ -183,7 +183,7 @@ export default function ProfilePage() {
   };
 
   const navItems = [
-    { name: "Profile Details", icon: User },
+    { name: "Profile Details", icon: User2 },
     { name: "Bank Details", icon: Briefcase },
     { name: "Documents", icon: FileText },
     { name: "Certifications", icon: Award },
@@ -538,7 +538,7 @@ export default function ProfilePage() {
             </div>
           </CardHeader>
           <CardContent
-            className={`space-y-2 pb-5 ${
+            className={`space-y-2 pb-5  ${
               isMobile && !isMobileNavOpen ? "hidden" : ""
             }`}
           >
@@ -569,7 +569,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
         <Card className="w-full md:w-3/4 shadow-md relative">
-          <CardHeader>
+          <CardHeader className="border-primary/15 border-b-2">
             <CardTitle>{selectedNav}</CardTitle>
           </CardHeader>
           <Separator />

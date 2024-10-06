@@ -145,7 +145,7 @@ export default function BankDetailsSection({ userId }: Props) {
       formData.append("requestedData", JSON.stringify(payload.requestedData));
 
       const response = await api.put(
-        "https://devapi-tms.mind-graph360.com/api/v1/bankDetails/update-request",
+        "/api/v1/bankDetails/update-request",
         formData,
         {
           headers: {
@@ -205,7 +205,7 @@ export default function BankDetailsSection({ userId }: Props) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mt-5">
       <div className="flex justify-end space-x-2">
         <Button
           onClick={toggleEdit}

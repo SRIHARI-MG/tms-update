@@ -431,7 +431,7 @@ export default function CertificatesSection({
   const PreviewDialog = ({ url }: { url: string }) => (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm">
+        <Button variant="outline" size="sm">
           <Eye className="w-4 h-4 mr-2" />
           Preview
         </Button>
@@ -448,7 +448,7 @@ export default function CertificatesSection({
   );
 
   return (
-    <Card className="mt-5">
+    <Card >
       <CardHeader>
         <div className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:items-center">
           <CardTitle>Certificates</CardTitle>
@@ -536,33 +536,36 @@ export default function CertificatesSection({
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
-                          <Collapsible className="md:hidden">
+                          <Collapsible className="md:hidden w-full">
                             <CollapsibleTrigger asChild>
                               <Button variant="ghost" size="sm">
                                 <ChevronDown className="w-4 h-4" />
                               </Button>
                             </CollapsibleTrigger>
-                            <CollapsibleContent className="space-y-2 mt-2">
-                              <PreviewDialog url={cert.certificatePdfUrl} />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full justify-start"
-                                onClick={() => handleEdit(cert)}
-                              >
-                                <Pencil className="w-4 h-4 mr-2" />
-                                Edit
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full justify-start"
-                                onClick={() => handleDeleteClick(cert)}
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete
-                              </Button>
-                              <div className="text-sm space-y-1">
+                            <CollapsibleContent className="w-full flex flex-col items-start gap-2 mt-2">
+                              <div className="w-full flex flex-wrap gap-2">
+                                <PreviewDialog url={cert.certificatePdfUrl} />
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  className="w-fit justify-start"
+                                  onClick={() => handleEdit(cert)}
+                                >
+                                  <Pencil className="w-4 h-4 mr-2" />
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  className="w-fit justify-start"
+                                  onClick={() => handleDeleteClick(cert)}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Delete
+                                </Button>
+                              </div>
+
+                              <div className="text-sm w-full flex flex-col items-start gap-2">
                                 <p>
                                   <strong>Credential ID:</strong>{" "}
                                   {cert.credentialId || "-"}

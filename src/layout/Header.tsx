@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Bell, Menu } from "lucide-react";
+import { Search, Bell, Menu, LogOut, User, User2 } from "lucide-react";
 import companyLogo from "@/assets/CompanyLogo.png";
 import {
   DropdownMenu,
@@ -291,12 +291,12 @@ export default function Header() {
 
         <div className="flex items-center space-x-2 md:space-x-4">
           <ThemeToggle />
-          <button className="relative">
+          {/* <button className="relative">
             <Bell className="h-5 w-5 md:h-6 md:w-6" />
             <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
               3
             </span>
-          </button>
+          </button> */}
           <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             <DropdownMenuTrigger className="focus:outline-none">
               <div className="flex items-center space-x-2">
@@ -321,13 +321,16 @@ export default function Header() {
               <DropdownMenuItem
                 onSelect={() => handleMenuItemClick(profileRenderNavigation())}
               >
+                <User2 className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setIsOpen(false)}>
-                Settings
+                <Bell className="mr-2 h-4 w-4" />
+                Track Request
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-red-600" onClick={onLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
