@@ -350,7 +350,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
               placeholder={!isEditing ? placeholders[docType][fieldName] : ""}
               value={isEditing ? field.value : field.value || ""}
               readOnly={!isEditing}
-              className={!isEditing ? "bg-primary/10 text-gray-700" : ""}
+              className={!isEditing ? "bg-primary/5 text-gray-700" : ""}
             />
           </FormControl>
           <FormMessage />
@@ -419,7 +419,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="pt-5">
           <CardContent className="space-y-4">
             <h3 className="text-lg font-semibold">PAN Card Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -430,7 +430,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="pt-5">
           <CardContent className="space-y-4">
             <h3 className="text-lg font-semibold">Passport Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

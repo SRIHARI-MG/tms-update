@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Bell, Menu, LogOut, User, User2 } from "lucide-react";
+import {
+  Search,
+  Bell,
+  Menu,
+  LogOut,
+  User,
+  User2,
+  ChevronDown,
+} from "lucide-react";
 import companyLogo from "@/assets/CompanyLogo.png";
 import {
   DropdownMenu,
@@ -27,6 +35,7 @@ interface DecodedToken {
 interface NavItem {
   label: string;
   path: string;
+  children?: NavItem[];
 }
 
 interface UserDetails {
@@ -181,15 +190,16 @@ export default function Header() {
       console.log(mappedData);
       setUserProfileDetails(mappedData);
     } catch (error: any) {
-      if (error.response?.status === 403) {
-        toast.warning("Session expired. Redirecting to login page...", {
-          duration: 2000,
-          onDismiss: () => {
-            localStorage.clear();
-            navigate("/login");
-          },
-        });
-      }
+      showToast(error.response.data.message);
+      // if (error.response?.status === 403) {
+      //   toast.warning("Session expired. Redirecting to login page...", {
+      //     duration: 2000,
+      //     onDismiss: () => {
+      //       localStorage.clear();
+      //       navigate("/login");
+      //     },
+      //   });
+      // }
     }
   };
 
@@ -201,7 +211,6 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    // Set navigation items based on user role
     const roleBasedNavItems: { [key: string]: NavItem[] } = {
       ROLE_HR: [
         { label: "Profile", path: "/hr/profile" },
@@ -215,8 +224,26 @@ export default function Header() {
       ],
       ROLE_EMPLOYEE: [
         { label: "Dashboard", path: "/employee/dashboard" },
-        { label: "Jobs", path: "/employee/jobs" },
-        { label: "Tasks", path: "/employee/tasks" },
+        {
+          label: "Workspace",
+          path: "/employee/workspace",
+          children: [
+            { label: "Collaborate", path: "/employee/workspace/collaborate" },
+            { label: "My Projects", path: "/employee/workspace/my-projects" },
+          ],
+        },
+        {
+          label: "Timesheet",
+          path: "/employee/timesheet",
+          children: [
+            { label: "Calendar", path: "/employee/timesheet/calendar" },
+            { label: "Task Details", path: "/employee/timesheet/task-details" },
+            {
+              label: "Assigned Tasks",
+              path: "/employee/timesheet/assigned-tasks",
+            },
+          ],
+        },
       ],
       // Add more role-based navigation items as needed
     };
@@ -229,7 +256,7 @@ export default function Header() {
   };
 
   const isActive = (path: string) => {
-    return location.pathname === path
+    return location.pathname.startsWith(path)
       ? "border border-primary bg-primary/10"
       : "";
   };
@@ -252,6 +279,47 @@ export default function Header() {
     return result;
   };
 
+  const renderNavItems = (items: NavItem[]) => {
+    return items.map((item, index) => (
+      <div key={index} className="relative group">
+        {item.children ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={`px-3 py-1 text-md font-semibold text-primary hover:border rounded-sm hover:border-primary hover:bg-primary/10 ${isActive(
+                item.path
+              )} flex items-center`}
+            >
+              {item.label}
+              <ChevronDown className="ml-1 h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {item.children.map((child, childIndex) => (
+                <DropdownMenuItem key={childIndex}>
+                  <Link
+                    to={child.path}
+                    className="w-full"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {child.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Link
+            to={item.path}
+            className={`px-3 py-1 text-md font-semibold text-primary hover:border rounded-sm hover:border-primary hover:bg-primary/10 ${isActive(
+              item.path
+            )}`}
+          >
+            {item.label}
+          </Link>
+        )}
+      </div>
+    ));
+  };
+
   const handleMenuItemClick = (path: string) => {
     setIsOpen(false); // Close the dropdown
     navigate(path, { state: userProfileDetails });
@@ -259,8 +327,8 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-background z-10 border-b-2">
-      <div className="flex h-16 md:h-20 items-center justify-between px-4 md:px-10">
-        <div className="flex items-center">
+      <div className="flex h-20 md:h-20 items-center justify-between px-4 md:px-10">
+        <div className="flex items-center ">
           <Sheet>
             <SheetTrigger className="mr-2 md:hidden">
               <Menu className="h-6 w-6" />
@@ -268,14 +336,35 @@ export default function Header() {
             <SheetContent side="left" className="w-64">
               <div className="flex flex-col space-y-4 mt-6">
                 {navItems.map((item, index) => (
-                  <Link
-                    key={index}
-                    to={item.path}
-                    state={userProfileDetails}
-                    className="px-3 py-2 text-md font-semibold text-primary hover:bg-primary/10 rounded-sm"
-                  >
-                    {item.label}
-                  </Link>
+                  <div key={index}>
+                    {item.children ? (
+                      <>
+                        <div className="px-3 py-2 text-md font-semibold text-primary">
+                          {item.label}
+                        </div>
+                        {item.children.map((child, childIndex) => (
+                          <div className="flex flex-col gap-5">
+                            <Link
+                              key={childIndex}
+                              to={child.path}
+                              onClick={() => setIsOpen(false)}
+                              className="px-6 py-2 text-md text-primary hover:bg-primary/10 rounded-sm"
+                            >
+                              {child.label}
+                            </Link>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <Link
+                        to={item.path}
+                        onClick={() => setIsOpen(false)}
+                        className="px-3 py-2 text-md font-semibold text-primary hover:bg-primary/10 rounded-sm"
+                      >
+                        {item.label}
+                      </Link>
+                    )}
+                  </div>
                 ))}
               </div>
             </SheetContent>
@@ -284,7 +373,7 @@ export default function Header() {
             <img
               src={companyLogo}
               alt="Mindgraph"
-              className="h-8 w-20 md:h-10 md:w-24"
+              className="h-8 w-22 md:h-14 md:w-26"
             />
           </Link>
         </div>
@@ -340,17 +429,7 @@ export default function Header() {
 
       <nav className="hidden md:block border-t-2 h-14 px-10">
         <div className="flex gap-8 items-center h-full">
-          {navItems.map((item, index) => (
-            <Link
-              key={index}
-              to={item.path}
-              className={`px-3 py-1 text-md font-semibold text-primary hover:border rounded-sm hover:border-primary hover:bg-primary/10 ${isActive(
-                item.path
-              )}`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {renderNavItems(navItems)}
         </div>
       </nav>
     </header>

@@ -1,7 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 html body {
   height: 100vh;
   font-family: "Poppins", sans-serif;
@@ -9,73 +11,75 @@ html body {
 
 @layer base {
   :root {
-    --gradient: linear-gradient(to top left, #231557, #44107a, #ff1361);
-    --background: 269 98.05% 98.42%;
-    --foreground: 269 6.1% 0.84%;
-    --muted: 269 6.1% 92.1%;
-    --muted-foreground: 269 3.05% 42.1%;
-    --popover: 269 41.2% 92.1%;
-    --popover-foreground: 269 6.1% 1.05%;
-    --card: 269 41.2% 92.1%;
-    --card-foreground: 269 6.1% 1.05%;
-    --border: 269 11.1% 89.84%;
-    --input: 269 11.1% 89.84%;
-    --primary: 269 61% 21%;
-    --primary-foreground: 269 1.22% 92.1%;
-    --secondary: 269 3.05% 96.05%;
-    --secondary-foreground: 269 4.66% 12.1%;
-    --accent: 269 3.05% 96.05%;
-    --accent-foreground: 269 4.66% 12.1%;
-    --destructive: 0 84.2% 60.2%;
+    --gradient: linear-gradient(to top left, #094366, #0d6a9f, #2596be);
+    --background: 255 100% 100%; /* Set background to white */
+    --foreground: 204 30% 10%;
+    --muted: 204 20% 92%;
+    --muted-foreground: 204 20% 40%;
+    --popover: 204 25% 95%;
+    --popover-foreground: 204 30% 10%;
+    --border: 204 25% 85%;
+    --input: 204 25% 85%;
+    --primary: 204 80% 22%;
+    --primary-foreground: 204 5% 95%;
+    --secondary: 204 20% 90%;
+    --secondary-foreground: 204 25% 20%;
+    --accent: 204 30% 85%;
+    --accent-foreground: 204 30% 20%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --ring: 269 61% 21%;
+    --ring: 204 80% 22%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --gradient: linear-gradient(to top left, #130b2e, #22053d, #8a0b36);
-    --background: 269 70% 5.8%;
-    --foreground: 269 6.1% 95.16%;
-    --muted: 269 50% 15%;
-    --muted-foreground: 269 3.05% 55%;
-    --popover: 269 65% 9.9%;
-    --popover-foreground: 269 6.1% 95.16%;
-    --card: 269 65% 9.9%;
-    --card-foreground: 269 6.1% 95.16%;
-    --border: 269 50% 15%;
-    --input: 269 50% 15%;
-    --primary: 269 61% 50%;
-    --primary-foreground: 269 1.22% 95.16%;
-    --secondary: 269 30% 20%;
-    --secondary-foreground: 269 4.66% 95.16%;
-    --accent: 269 30% 20%;
-    --accent-foreground: 269 4.66% 95.16%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 269 6.1% 95.16%;
-    --ring: 269 61% 50%;
+    --gradient: linear-gradient(
+      to top left,
+      #1c1e24,
+      #2e3037,
+      #40434a
+    ); /* Sleek dark gradient */
+    --background: 220 15% 10%; /* Dark neutral background */
+    --foreground: 220 15% 85%; /* Light gray for text */
+    --muted: 220 10% 20%; /* Muted darker gray */
+    --muted-foreground: 220 15% 60%; /* Muted light gray */
+    --popover: 220 10% 15%; /* Slightly lighter popover */
+    --popover-foreground: 220 15% 90%; /* Bright text for popovers */
+    --card: 220 10% 12%; /* Dark card background */
+    --card-foreground: 220 15% 85%; /* Light card text */
+    --border: 220 10% 25%; /* Subtle borders */
+    --input: 220 10% 25%; /* Darker input backgrounds */
+    --primary: 210 90% 40%; /* Bright blue for primary */
+    --primary-foreground: 220 15% 95%; /* Light text on primary buttons */
+    --secondary: 220 10% 35%; /* Deep gray secondary */
+    --secondary-foreground: 220 15% 85%; /* Light gray text */
+    --accent: 220 15% 30%; /* Muted blue-gray accents */
+    --accent-foreground: 220 15% 85%; /* Lighter accent text */
+    --destructive: 0 60% 40%; /* Balanced red for warnings */
+    --destructive-foreground: 220 15% 95%;
+    --ring: 210 90% 40%; /* Bright accent ring for focus */
   }
+
   /* Auth layout specific theme */
   .auth-layout {
-    --gradient: linear-gradient(to top left, #231557, #44107a, #ff1361);
-    --background: 269 98.05% 98.42%;
-    --foreground: 269 6.1% 0.84%;
-    --muted: 269 6.1% 92.1%;
-    --muted-foreground: 269 3.05% 42.1%;
-    --popover: 269 41.2% 92.1%;
-    --popover-foreground: 269 6.1% 1.05%;
-    --card: 269 41.2% 92.1%;
-    --card-foreground: 269 6.1% 1.05%;
-    --border: 269 11.1% 89.84%;
-    --input: 269 11.1% 89.84%;
-    --primary: 269 61% 21%;
-    --primary-foreground: 269 1.22% 92.1%;
-    --secondary: 269 3.05% 96.05%;
-    --secondary-foreground: 269 4.66% 12.1%;
-    --accent: 269 3.05% 96.05%;
-    --accent-foreground: 269 4.66% 12.1%;
-    --destructive: 0 84.2% 60.2%;
+    --gradient: linear-gradient(to top left, #094366, #0d6a9f, #2596be);
+    --background: 255 100% 100%; /* Set auth background to white */
+    --foreground: 204 30% 10%;
+    --muted: 204 20% 92%;
+    --muted-foreground: 204 20% 40%;
+    --popover: 204 25% 95%;
+    --popover-foreground: 204 30% 10%;
+    --border: 204 25% 85%;
+    --input: 204 25% 85%;
+    --primary: 204 80% 22%;
+    --primary-foreground: 204 5% 95%;
+    --secondary: 204 20% 90%;
+    --secondary-foreground: 204 25% 20%;
+    --accent: 204 30% 85%;
+    --accent-foreground: 204 30% 20%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --ring: 269 61% 21%;
+    --ring: 204 80% 22%;
     --radius: 0.5rem;
   }
 }

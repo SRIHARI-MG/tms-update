@@ -15,7 +15,11 @@ import ProfilePage from "@/pages/private/Profile/ProfilePage";
 import ManagerDashboard from "@/pages/private/Manager_Components/ManagerDashboard";
 import NotFoundPage from "@/pages/public/NotFoundPage";
 import EmployeeDashboard from "@/pages/private/Employee_Components/EmployeeDashboard";
-import LogoutHandler from "./components/LogoutHandler";
+import WorkspaceCollaborate from "@/pages/private/Employee_Components/Workspace/WorkspaceCollaborate";
+import WorkspaceMyProjects from "@/pages/private/Employee_Components/Workspace/WorkspaceMyProjects";
+import TimesheetCalender from "@/pages/private/Employee_Components/Timesheet/TimesheetCalender";
+import TimesheetTaskDetails from "@/pages/private/Employee_Components/Timesheet/TimesheetTaskDetails";
+import TimesheetAssignedTask from "@/pages/private/Employee_Components/Timesheet/TimesheetAssignedTask";
 
 function App() {
   const userRole = localStorage.getItem("role");
@@ -55,6 +59,51 @@ function App() {
               </AuthMiddleware>
             }
           />
+          <Route path="workspace">
+            <Route
+              path="collaborate"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
+                  <WorkspaceCollaborate />
+                </AuthMiddleware>
+              }
+            />
+            <Route
+              path="my-projects"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
+                  <WorkspaceMyProjects />
+                </AuthMiddleware>
+              }
+            />
+          </Route>
+
+          <Route path="timesheet">
+            <Route
+              path="calendar"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
+                  <TimesheetCalender />
+                </AuthMiddleware>
+              }
+            />
+            <Route
+              path="task-details"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
+                  <TimesheetTaskDetails />
+                </AuthMiddleware>
+              }
+            />
+            <Route
+              path="assigned-tasks"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
+                  <TimesheetAssignedTask />
+                </AuthMiddleware>
+              }
+            />
+          </Route>
         </Route>
 
         {/* HR Routes */}

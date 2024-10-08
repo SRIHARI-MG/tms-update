@@ -35,7 +35,7 @@ const PhoneInput = ({ value, onChange, readOnly, countryCodes }: any) => (
       }
       readOnly={readOnly}
       className={`flex-1 ml-2 ${
-        readOnly ? "bg-primary/10 text-gray-700" : ""
+        readOnly ? "bg-primary/5 text-gray-700" : ""
       } border-gray-300`}
     />
   </div>

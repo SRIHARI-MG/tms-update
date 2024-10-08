@@ -48,6 +48,8 @@ import CertificatesSection from "./CertificatesSection";
 import React from "react";
 import { useToast } from "@/hooks/use-toast";
 import { handleLogout } from "@/utils/authHandler";
+import FormContent from "./FormContent";
+import PageIndicator from "@/components/ui/page-indicator";
 
 interface UserDetails {
   key: string;
@@ -115,6 +117,54 @@ interface Documents {
   passport: DocumentDetails;
 }
 
+const formSections = [
+  {
+    title: "Personal Details",
+    keys: [
+      "firstName",
+      "lastName",
+      "dateOfBirth",
+      "gender",
+      "mobileNumber",
+      "alternateMobileNumber",
+      "personalEmail",
+      "bloodGroup",
+      "emergencyContactPersonName",
+      "emergencyContactMobileNumber",
+      "currentAddressLine1",
+      "currentAddressLine2",
+      "currentAddressLandmark",
+      "currentAddressNationality",
+      "currentAddressState",
+      "currentAddressDistrict",
+      "currentAddressZipcode",
+      "permanentAddressLine1",
+      "permanentAddressLine2",
+      "permanentAddressLandmark",
+      "permanentAddressNationality",
+      "permanentAddressState",
+      "permanentAddressDistrict",
+      "permanentAddressZipcode",
+    ],
+  },
+  {
+    title: "Professional Details",
+    keys: [
+      "userId",
+      "email",
+      "dateOfJoining",
+      "employmentType",
+      "internshipDuration",
+      "internshipEndDate",
+      "designation",
+      "shiftTiming",
+      "willingToTravel",
+      "reportingManagerEmail",
+      "skills",
+    ],
+  },
+];
+
 export default function ProfilePage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -122,6 +172,7 @@ export default function ProfilePage() {
   const userProfileDetails: UserDetails = location.state || {};
   const [selectedNav, setSelectedNav] = useState("Profile Details");
   const [isEditing, setIsEditing] = useState(false);
+  const [activePage, setActivePage] = useState(formSections[0].title);
   const [editedDetails, setEditedDetails] = useState<any>({
     ...userProfileDetails,
   });
@@ -485,7 +536,7 @@ export default function ProfilePage() {
     <div className="space-y-6 pb-5 px-4">
       <CardTitle>Profile</CardTitle>
       <div className="flex flex-col md:flex-row gap-6 md:gap-10 mt-6">
-        <Card className="w-full h-fit md:w-3/12 border rounded-lg shadow-md">
+        <Card className="w-full h-fit md:w-3/12 border-none rounded-lg shadow-md">
           <CardHeader
             className={`mb-6 border-primary/15 border-b-2 py-5 ${
               isMobile ? "cursor-pointer" : ""
@@ -547,305 +598,273 @@ export default function ProfilePage() {
                 <Button
                   key={item.name}
                   variant={selectedNav === item.name ? "secondary" : "ghost"}
-                  className="w-full justify-start hover:bg-primary/10 "
+                  className="w-full justify-start text-md hover:bg-primary/10 "
                   onClick={() => {
                     setSelectedNav(item.name);
                     if (isMobile) setIsMobileNavOpen(false);
                   }}
                 >
-                  <item.icon className="mr-2 h-4 w-4" />
+                  <item.icon className="mr-2 h-5 w-5" />
                   {item.name}
                 </Button>
               ))}
               <Button
                 variant="ghost"
-                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="w-full text-md justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                 onClick={handleLogoutClick}
               >
-                <LogOut className="mr-2 h-4 w-4" />
+                <LogOut className="mr-2 h-5 w-5" />
                 Logout
               </Button>
             </nav>
           </CardContent>
         </Card>
-        <Card className="w-full md:w-3/4 shadow-md relative">
-          <CardHeader className="border-primary/15 border-b-2">
+        <Card className="w-full md:w-3/4 shadow-md border-none relative">
+          <div className="flex p-5 justify-between ">
             <CardTitle>{selectedNav}</CardTitle>
-          </CardHeader>
-          <Separator />
+            {selectedNav === "Profile Details" && (
+              <div className="space-x-2">
+                <Button
+                  onClick={toggleEdit}
+                  size="sm"
+                  variant={`${isEditing ? "outline" : "default"}`}
+                >
+                  {isEditing ? (
+                    <>
+                      <X className="mr-2 h-4 w-4" />
+                      Cancel
+                    </>
+                  ) : (
+                    <>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit
+                    </>
+                  )}
+                </Button>
+                {isEditing && (
+                  <Button onClick={handleRequestApproval} size="sm">
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Request for Approval
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
           <CardContent>
             {selectedNav === "Profile Details" && (
               <div className="mt-5 space-y-6">
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    onClick={toggleEdit}
-                    size="sm"
-                    variant={`${isEditing ? "outline" : "default"}`}
-                  >
-                    {isEditing ? (
-                      <>
-                        <X className="mr-2 h-4 w-4" />
-                        Cancel
-                      </>
-                    ) : (
-                      <>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </>
-                    )}
-                  </Button>
-                  {isEditing && (
-                    <Button onClick={handleRequestApproval} size="sm">
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Request for Approval
-                    </Button>
-                  )}
+                <div className="flex justify-between items-center sm:flex-wrap">
+                  <PageIndicator
+                    pages={formSections.map((section) => section.title)}
+                    activePage={activePage}
+                    onPageChange={setActivePage}
+                  />
                 </div>
 
-                <div className="space-y-6">
-                  {[
-                    {
-                      title: "Personal Details",
-                      keys: [
-                        "firstName",
-                        "lastName",
-                        "dateOfBirth",
-                        "gender",
-                        "mobileNumber",
-                        "alternateMobileNumber",
-                        "personalEmail",
-                        "bloodGroup",
-                        "emergencyContactPersonName",
-                        "emergencyContactMobileNumber",
-                      ],
-                    },
-                    {
-                      title: "Current Address",
-                      keys: [
-                        "currentAddressLine1",
-                        "currentAddressLine2",
-                        "currentAddressLandmark",
-                        "currentAddressNationality",
-                        "currentAddressState",
-                        "currentAddressDistrict",
-                        "currentAddressZipcode",
-                      ],
-                    },
-                    {
-                      title: "Permanent Address",
-                      keys: [
-                        "permanentAddressLine1",
-                        "permanentAddressLine2",
-                        "permanentAddressLandmark",
-                        "permanentAddressNationality",
-                        "permanentAddressState",
-                        "permanentAddressDistrict",
-                        "permanentAddressZipcode",
-                      ],
-                    },
-                    {
-                      title: "Professional Details",
-                      keys: [
-                        "userId",
-                        "email",
-                        "dateOfJoining",
-                        "employmentType",
-                        "internshipDuration",
-                        "internshipEndDate",
-                        "designation",
-                        "shiftTiming",
-                        "willingToTravel",
-                        "reportingManagerEmail",
-                        "skills",
-                      ],
-                    },
-                  ].map((section) => (
-                    <div key={section.title}>
-                      <p className="text-lg font-semibold">{section.title}</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        {section.keys.map((key) => (
-                          <div key={key} className="space-y-2">
-                            <Label
-                              htmlFor={key}
-                              className="text-sm font-medium text-gray-500"
-                            >
-                              {key
-                                .replace(/([A-Z])/g, " $1")
-                                .replace(/^./, (str) => str.toUpperCase())}
-                              {section.title !== "Professional Details" && (
-                                <span className="text-red-500">*</span>
-                              )}
-                            </Label>
-
-                            {key === "gender" ? (
-                              <Select
-                                value={editedDetails[key]}
-                                onValueChange={(value) =>
-                                  handleInputChange(key, value)
-                                }
-                                disabled={!isEditing}
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Select Gender" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {genderOptions.map((option) => (
-                                    <SelectItem key={option} value={option}>
-                                      {option}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            ) : key === "bloodGroup" ? (
-                              <Select
-                                value={editedDetails[key]}
-                                onValueChange={(value) =>
-                                  handleInputChange(key, value)
-                                }
-                                disabled={!isEditing}
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Select Blood Group" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {bloodGroupOptions.map((option) => (
-                                    <SelectItem key={option} value={option}>
-                                      {option}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            ) : key === "willingToTravel" ? (
-                              <Select
-                                value={editedDetails[key].toString()} // Convert boolean to string for Select
-                                onValueChange={
-                                  (value) =>
-                                    handleInputChange(key, value === "true") // Convert string back to boolean
-                                }
-                                disabled={!isEditing || !isFieldEditable(key)}
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Select">
-                                    {getWillingToTravelDisplay(
-                                      editedDetails[key]
-                                    )}
-                                  </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {willingToTravelOptions.map((option) => (
-                                    <SelectItem
-                                      key={option.label}
-                                      value={option.value.toString()}
-                                    >
-                                      {option.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            ) : key === "employmentType" ? (
-                              <Select
-                                value={editedDetails[key]}
-                                onValueChange={(value) =>
-                                  handleInputChange(key, value)
-                                }
-                                disabled={!isEditing || !isFieldEditable(key)}
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Select Employment Type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {employmentTypeOptions.map((option) => (
-                                    <SelectItem key={option} value={option}>
-                                      {option}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            ) : key === "shiftTiming" ? (
-                              <Select
-                                value={editedDetails[key]}
-                                onValueChange={(value) =>
-                                  handleInputChange(key, value)
-                                }
-                                disabled={!isEditing || !isFieldEditable(key)}
-                              >
-                                <SelectTrigger className="w-full ">
-                                  <SelectValue placeholder="Select Shift Time" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {shiftTimeOptions.map((option) => (
-                                    <SelectItem key={option} value={option}>
-                                      {option}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            ) : key === "mobileNumber" ||
-                              key === "alternateMobileNumber" ||
-                              key === "emergencyContactMobileNumber" ? (
-                              <PhoneInput
-                                value={phoneNumbers[key]}
-                                onChange={(value: any) =>
-                                  handlePhoneChange(key, value)
-                                }
-                                readOnly={!isEditing}
-                                countryCodes={countryCodes}
-                                required={
-                                  section.title !== "Professional Details"
-                                }
-                              />
-                            ) : key === "skills" ? (
-                              !isEditing ? (
-                                <div className="flex flex-wrap gap-2">
-                                  {(editedDetails[key] as string[]).map(
-                                    (skill, index) => (
-                                      <span
-                                        key={index}
-                                        className="bg-primary/10 text-primary px-2 py-1 rounded-full text-sm"
-                                      >
-                                        {skill}
-                                      </span>
-                                    )
+                <div className="space-y-2">
+                  {formSections.map(
+                    (section) =>
+                      section.title === activePage && (
+                        <div key={section.title}>
+                          <p className="text-lg font-semibold">
+                            {section.title}
+                          </p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {section.keys.map((key) => (
+                              <div key={key} className="space-y-2">
+                                <Label
+                                  htmlFor={key}
+                                  className="text-sm font-medium text-gray-500"
+                                >
+                                  {key
+                                    .replace(/([A-Z])/g, " $1")
+                                    .replace(/^./, (str) => str.toUpperCase())}
+                                  {section.title !== "Professional Details" && (
+                                    <span className="text-red-500">*</span>
                                   )}
-                                </div>
-                              ) : (
-                                <TagInput
-                                  initialTags={editedDetails[key] as string[]}
-                                  onTagsChange={handleTagsChange}
-                                />
-                              )
-                            ) : (
-                              <Input
-                                id={key}
-                                value={editedDetails[key] as string}
-                                onChange={(e) =>
-                                  handleInputChange(key, e.target.value)
-                                }
-                                readOnly={!isEditing || !isFieldEditable(key)}
-                                className={`${
-                                  !isEditing || !isFieldEditable(key)
-                                    ? "bg-primary/10 text-gray-700"
-                                    : ""
-                                } ${
-                                  errors[key]
-                                    ? "border-red-500"
-                                    : "border-gray-300"
-                                }`}
-                                required={
-                                  section.title !== "Professional Details"
-                                }
-                              />
-                            )}
-                            {errors[key] && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {errors[key]}
-                              </p>
-                            )}
+                                </Label>
+
+                                {key === "gender" ? (
+                                  <Select
+                                    value={editedDetails[key]}
+                                    onValueChange={(value) =>
+                                      handleInputChange(key, value)
+                                    }
+                                    disabled={!isEditing}
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select Gender" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {genderOptions.map((option) => (
+                                        <SelectItem key={option} value={option}>
+                                          {option}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                ) : key === "bloodGroup" ? (
+                                  <Select
+                                    value={editedDetails[key]}
+                                    onValueChange={(value) =>
+                                      handleInputChange(key, value)
+                                    }
+                                    disabled={!isEditing}
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select Blood Group" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {bloodGroupOptions.map((option) => (
+                                        <SelectItem key={option} value={option}>
+                                          {option}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                ) : key === "willingToTravel" ? (
+                                  <Select
+                                    value={editedDetails[key].toString()} // Convert boolean to string for Select
+                                    onValueChange={
+                                      (value) =>
+                                        handleInputChange(key, value === "true") // Convert string back to boolean
+                                    }
+                                    disabled={
+                                      !isEditing || !isFieldEditable(key)
+                                    }
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select">
+                                        {getWillingToTravelDisplay(
+                                          editedDetails[key]
+                                        )}
+                                      </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {willingToTravelOptions.map((option) => (
+                                        <SelectItem
+                                          key={option.label}
+                                          value={option.value.toString()}
+                                        >
+                                          {option.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                ) : key === "employmentType" ? (
+                                  <Select
+                                    value={editedDetails[key]}
+                                    onValueChange={(value) =>
+                                      handleInputChange(key, value)
+                                    }
+                                    disabled={
+                                      !isEditing || !isFieldEditable(key)
+                                    }
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select Employment Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {employmentTypeOptions.map((option) => (
+                                        <SelectItem key={option} value={option}>
+                                          {option}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                ) : key === "shiftTiming" ? (
+                                  <Select
+                                    value={editedDetails[key]}
+                                    onValueChange={(value) =>
+                                      handleInputChange(key, value)
+                                    }
+                                    disabled={
+                                      !isEditing || !isFieldEditable(key)
+                                    }
+                                  >
+                                    <SelectTrigger className="w-full ">
+                                      <SelectValue placeholder="Select Shift Time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {shiftTimeOptions.map((option) => (
+                                        <SelectItem key={option} value={option}>
+                                          {option}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                ) : key === "mobileNumber" ||
+                                  key === "alternateMobileNumber" ||
+                                  key === "emergencyContactMobileNumber" ? (
+                                  <PhoneInput
+                                    value={phoneNumbers[key]}
+                                    onChange={(value: any) =>
+                                      handlePhoneChange(key, value)
+                                    }
+                                    readOnly={!isEditing}
+                                    countryCodes={countryCodes}
+                                    required={
+                                      section.title !== "Professional Details"
+                                    }
+                                  />
+                                ) : key === "skills" ? (
+                                  !isEditing ? (
+                                    <div className="flex flex-wrap gap-2">
+                                      {(editedDetails[key] as string[]).map(
+                                        (skill, index) => (
+                                          <span
+                                            key={index}
+                                            className="bg-primary/10 text-primary px-2 py-1 rounded-full text-sm"
+                                          >
+                                            {skill}
+                                          </span>
+                                        )
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <TagInput
+                                      initialTags={
+                                        editedDetails[key] as string[]
+                                      }
+                                      onTagsChange={handleTagsChange}
+                                    />
+                                  )
+                                ) : (
+                                  <Input
+                                    id={key}
+                                    value={editedDetails[key] as string}
+                                    onChange={(e) =>
+                                      handleInputChange(key, e.target.value)
+                                    }
+                                    readOnly={
+                                      !isEditing || !isFieldEditable(key)
+                                    }
+                                    className={`${
+                                      !isEditing || !isFieldEditable(key)
+                                        ? "bg-primary/5 text-gray-700"
+                                        : ""
+                                    } ${
+                                      errors[key]
+                                        ? "border-red-500"
+                                        : "border-gray-300"
+                                    }`}
+                                    required={
+                                      section.title !== "Professional Details"
+                                    }
+                                  />
+                                )}
+                                {errors[key] && (
+                                  <p className="text-red-500 text-xs mt-1">
+                                    {errors[key]}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                        </div>
+                      )
+                  )}
+                  {/* <FormContent /> */}
                 </div>
               </div>
             )}

@@ -205,7 +205,7 @@ export default function BankDetailsSection({ userId }: Props) {
   }
 
   return (
-    <div className="space-y-6 mt-5">
+    <div className="space-y-6 ">
       <div className="flex justify-end space-x-2">
         <Button
           onClick={toggleEdit}
@@ -353,7 +353,7 @@ export default function BankDetailsSection({ userId }: Props) {
                 readOnly={!isEditing || key === "userId"}
                 className={`${
                   !isEditing || key === "userId"
-                    ? "bg-primary/10 text-gray-700"
+                    ? "bg-primary/5 text-gray-700"
                     : ""
                 }`}
               />

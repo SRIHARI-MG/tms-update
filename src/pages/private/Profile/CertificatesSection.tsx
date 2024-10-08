@@ -46,6 +46,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import LoadingButton from "@/components/ui/loading-button";
+import DynamicTable from "@/components/ui/custom-table";
 
 const formSchema = z.object({
   certificateName: z.string().min(1, "Certificate name is required"),
@@ -101,6 +102,94 @@ export default function CertificatesSection({
   });
 
   const itemsPerPage = 5;
+
+  const columns = [
+    {
+      header: "Certificate Name",
+      accessor: "certificateName",
+      className: "w-[200px] font-medium",
+    },
+    {
+      header: "Preview",
+      accessor: (cert: Certificate) => (
+        <PreviewDialog url={cert.certificatePdfUrl} />
+      ),
+      className: "hidden md:table-cell",
+    },
+    {
+      header: "Credential ID",
+      accessor: "credentialId",
+      className: "hidden lg:table-cell",
+    },
+    {
+      header: "Certificate Number",
+      accessor: "certificateNumber",
+      className: "hidden lg:table-cell",
+    },
+    {
+      header: "Description",
+      accessor: "description",
+      className: "hidden xl:table-cell w-[300px] max-w-[300px] truncate",
+    },
+  ];
+
+  const actions = (cert: Certificate) => (
+    <>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="hidden md:inline-flex"
+        onClick={() => handleEdit(cert)}
+      >
+        <Pencil className="w-4 h-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="hidden md:inline-flex"
+        onClick={() => handleDeleteClick(cert)}
+      >
+        <Trash2 className="w-4 h-4" />
+      </Button>
+    </>
+  );
+
+  const expandedContent = (cert: Certificate) => (
+    <>
+      <div className="w-full flex flex-wrap gap-2">
+        <PreviewDialog url={cert.certificatePdfUrl} />
+        <Button
+          variant="default"
+          size="sm"
+          className="w-fit justify-start"
+          onClick={() => handleEdit(cert)}
+        >
+          <Pencil className="w-4 h-4 mr-2" />
+          Edit
+        </Button>
+        <Button
+          variant="destructive"
+          size="sm"
+          className="w-fit justify-start"
+          onClick={() => handleDeleteClick(cert)}
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Delete
+        </Button>
+      </div>
+      <div className="text-sm w-full flex flex-col items-start gap-2">
+        <p>
+          <strong>Credential ID:</strong> {cert.credentialId || "-"}
+        </p>
+        <p>
+          <strong>Certificate Number:</strong> {cert.certificateNumber}
+        </p>
+        <p>
+          <strong>Description:</strong> {cert.description}
+        </p>
+      </div>
+    </>
+  );
 
   useEffect(() => {
     fetchCertificates();
@@ -294,7 +383,7 @@ export default function CertificatesSection({
                           readOnly={!!editingCertificate}
                           className={`${
                             !!editingCertificate
-                              ? "bg-primary/10 text-gray-700"
+                              ? "bg-primary/5 text-gray-700"
                               : ""
                           }`}
                         />
@@ -431,7 +520,7 @@ export default function CertificatesSection({
   const PreviewDialog = ({ url }: { url: string }) => (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="default" size="sm">
           <Eye className="w-4 h-4 mr-2" />
           Preview
         </Button>
@@ -448,146 +537,30 @@ export default function CertificatesSection({
   );
 
   return (
-    <Card >
-      <CardHeader>
-        <div className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:items-center">
-          <CardTitle>Certificates</CardTitle>
-          <Button
-            onClick={() => setIsAddingCertificate(true)}
-            className="w-full sm:w-auto"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Certificate
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+    <div className="space-y-4">
+      <div className="flex flex-col space-y-2 sm:flex-row sm:justify-end sm:items-center">
+        <Button
+          onClick={() => setIsAddingCertificate(true)}
+          className="w-full sm:w-auto"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Certificate
+        </Button>
+      </div>
+      <div>
         {certificates.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             No certificates found. Click 'Add Certificate' to get started.
           </div>
         ) : (
           <>
-            <div className="rounded-md border border-gray-200 overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50 hover:bg-gray-50">
-                    <TableHead className="w-[200px] font-semibold text-gray-600 border-b border-r">
-                      Certificate Name
-                    </TableHead>
-                    <TableHead className="hidden md:table-cell font-semibold text-gray-600 border-b border-r">
-                      Preview
-                    </TableHead>
-                    <TableHead className="hidden lg:table-cell font-semibold text-gray-600 border-b border-r">
-                      Credential ID
-                    </TableHead>
-                    <TableHead className="hidden lg:table-cell font-semibold text-gray-600 border-b border-r">
-                      Certificate Number
-                    </TableHead>
-                    <TableHead className="hidden xl:table-cell w-[300px] font-semibold text-gray-600 border-b border-r">
-                      Description
-                    </TableHead>
-                    <TableHead className="text-right font-semibold text-gray-600 border-b">
-                      Actions
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentItems.map((cert, index) => (
-                    <TableRow
-                      key={cert.certificateId}
-                      className={`hover:bg-primary/15 bg-primary/5 ${
-                        index !== currentItems.length - 1 ? "border-b" : ""
-                      }`}
-                    >
-                      <TableCell className="font-medium border-r">
-                        {cert.certificateName}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell border-r">
-                        <PreviewDialog url={cert.certificatePdfUrl} />
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell border-r">
-                        {cert.credentialId || "-"}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell border-r">
-                        {cert.certificateNumber}
-                      </TableCell>
-                      <TableCell
-                        className="hidden xl:table-cell max-w-[300px] truncate border-r"
-                        title={cert.description}
-                      >
-                        {cert.description}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="hidden md:inline-flex"
-                            onClick={() => handleEdit(cert)}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="hidden md:inline-flex"
-                            onClick={() => handleDeleteClick(cert)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                          <Collapsible className="md:hidden w-full">
-                            <CollapsibleTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <ChevronDown className="w-4 h-4" />
-                              </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="w-full flex flex-col items-start gap-2 mt-2">
-                              <div className="w-full flex flex-wrap gap-2">
-                                <PreviewDialog url={cert.certificatePdfUrl} />
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  className="w-fit justify-start"
-                                  onClick={() => handleEdit(cert)}
-                                >
-                                  <Pencil className="w-4 h-4 mr-2" />
-                                  Edit
-                                </Button>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  className="w-fit justify-start"
-                                  onClick={() => handleDeleteClick(cert)}
-                                >
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Delete
-                                </Button>
-                              </div>
-
-                              <div className="text-sm w-full flex flex-col items-start gap-2">
-                                <p>
-                                  <strong>Credential ID:</strong>{" "}
-                                  {cert.credentialId || "-"}
-                                </p>
-                                <p>
-                                  <strong>Certificate Number:</strong>{" "}
-                                  {cert.certificateNumber}
-                                </p>
-                                <p>
-                                  <strong>Description:</strong>{" "}
-                                  {cert.description}
-                                </p>
-                              </div>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <DynamicTable
+              data={currentItems}
+              columns={columns}
+              actions={actions}
+              expandedContent={expandedContent}
+              
+            />
             {totalPages > 1 && (
               <div className="flex justify-start mt-4 space-x-2">
                 <Button
@@ -611,7 +584,7 @@ export default function CertificatesSection({
             )}
           </>
         )}
-      </CardContent>
+      </div>
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
@@ -636,6 +609,6 @@ export default function CertificatesSection({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 }
