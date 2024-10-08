@@ -284,6 +284,7 @@ export default function ProfilePage() {
         title: "Notification",
         description: message,
         variant: "default",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
     },
     [toast]

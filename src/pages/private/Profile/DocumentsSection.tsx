@@ -253,6 +253,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         title: "Success",
         description: "Documents updated successfully.",
         variant: "default",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
       onSave();
     } catch (error) {
@@ -261,6 +262,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         title: "Error",
         description: error?.response?.data?.response?.action,
         variant: "destructive",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
     }
   };

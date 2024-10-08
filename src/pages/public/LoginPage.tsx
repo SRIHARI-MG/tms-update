@@ -83,6 +83,8 @@ export default function LoginPage() {
           title: "Success",
           description: "Logged in successfully",
           variant: "default",
+          className: "fixed bottom-4 right-4 bg-green-500 text-white  max-w-sm",
+          duration: 1000,
         });
 
         // Redirect based on role
@@ -98,6 +100,7 @@ export default function LoginPage() {
         description:
           "Login failed. Please check your credentials and try again.",
         variant: "destructive",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
     }
   };

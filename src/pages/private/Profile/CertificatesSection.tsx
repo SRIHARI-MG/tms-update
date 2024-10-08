@@ -277,6 +277,7 @@ export default function CertificatesSection({
           editingCertificate ? "update" : "addition"
         } approval.`,
         variant: "default",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
       handleCancel();
       fetchCertificates();
@@ -287,6 +288,7 @@ export default function CertificatesSection({
           editingCertificate ? "update" : "add"
         } request.`,
         variant: "destructive",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
     }
   };
@@ -310,6 +312,7 @@ export default function CertificatesSection({
           toast({
             title: "Certificate Deleted",
             description: response.data.message,
+            className: "fixed bottom-4 right-4  max-w-sm",
           });
           fetchCertificates(); // Refresh the list after deletion
         }
@@ -319,6 +322,7 @@ export default function CertificatesSection({
           title: "Error",
           description: "Failed to delete certificate. Please try again.",
           variant: "destructive",
+          className: "fixed bottom-4 right-4  max-w-sm",
         });
       }
     }

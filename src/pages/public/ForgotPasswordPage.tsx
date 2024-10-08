@@ -71,6 +71,7 @@ export default function ForgotPasswordPage() {
           title: "Success",
           description: responseData?.message,
           variant: "default",
+          className: "fixed bottom-4 right-4  max-w-sm",
         });
       }
     } catch (error) {
@@ -78,6 +79,7 @@ export default function ForgotPasswordPage() {
         title: "Error",
         description: "Something went wrong. Please try again later.",
         variant: "destructive",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
     }
   };
@@ -97,6 +99,7 @@ export default function ForgotPasswordPage() {
           title: "Success",
           description: responseData?.message,
           variant: "default",
+          className: "fixed bottom-4 right-4  max-w-sm",
         });
         navigate("/");
       }
@@ -106,6 +109,7 @@ export default function ForgotPasswordPage() {
         title: "Error",
         description: "Something went wrong. Please try again later.",
         variant: "destructive",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
     }
   }

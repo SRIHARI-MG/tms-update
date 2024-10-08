@@ -72,6 +72,7 @@ export default function ChangePasswordSection() {
       toast({
         title: "Success",
         description: "Password changed successfully",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
 
       form.reset();
@@ -80,6 +81,7 @@ export default function ChangePasswordSection() {
         variant: "destructive",
         title: "Error",
         description: "Failed to change password. Please try again.",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
     }
   };

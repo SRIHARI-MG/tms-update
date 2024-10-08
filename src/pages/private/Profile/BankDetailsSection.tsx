@@ -158,6 +158,7 @@ export default function BankDetailsSection({ userId }: Props) {
         toast({
           title: "Success",
           description: "Bank details update request submitted successfully.",
+          className: "fixed bottom-4 right-4  max-w-sm",
         });
         setIsEditing(false);
         fetchBankDetails(); // Refresh the data
@@ -171,6 +172,7 @@ export default function BankDetailsSection({ userId }: Props) {
         description:
           "Failed to submit bank details update request. Please try again.",
         variant: "destructive",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
     }
   };

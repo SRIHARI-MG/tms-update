@@ -35,7 +35,9 @@ function App() {
       <Route
         element={
           token ? (
-            <LayoutPage role={userRole!} />
+            <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
+              <LayoutPage role={userRole!} />
+            </AuthMiddleware>
           ) : (
             <Navigate to="/login" replace />
           )

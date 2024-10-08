@@ -23,10 +23,11 @@ import { ThemeToggle } from "@/components/ui/mode-toggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { jwtDecode } from "jwt-decode";
 import api from "@/api/apiService";
-import { toast } from "sonner";
 import moment from "moment";
 import { useToast } from "@/hooks/use-toast";
 import { handleLogout } from "@/utils/authHandler";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 interface DecodedToken {
   role: string;
@@ -104,6 +105,7 @@ export default function Header() {
         title: "Notification",
         description: message,
         variant: "default",
+        className: "fixed bottom-4 right-4  max-w-sm",
       });
     },
     [toast]
@@ -292,17 +294,24 @@ export default function Header() {
               {item.label}
               <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent className="w-52">
               {item.children.map((child, childIndex) => (
-                <DropdownMenuItem key={childIndex}>
-                  <Link
-                    to={child.path}
-                    className="w-full"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {child.label}
-                  </Link>
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem key={childIndex} className="bg-primary/10">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        navigate(child.path);
+                        setIsOpen(false);
+                      }}
+                      className="w-full bg-primary/10 px-3 py-1 hover:bg-primary hover:text-secondary"
+                    >
+                      {child.label}
+                    </Button>
+                  </DropdownMenuItem>
+                  <Separator />
+                </>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
