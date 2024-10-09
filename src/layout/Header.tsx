@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
@@ -21,18 +21,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ui/mode-toggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { jwtDecode } from "jwt-decode";
 import api from "@/api/apiService";
-import moment from "moment";
 import { useToast } from "@/hooks/use-toast";
 import { handleLogout } from "@/utils/authHandler";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-interface DecodedToken {
-  role: string;
-  userId: string;
-}
 interface NavItem {
   label: string;
   path: string;
@@ -40,34 +34,28 @@ interface NavItem {
 }
 
 interface UserDetails {
-  key: string;
-  profileUrl: string;
+  profileUrl?: string;
   userId: string;
   firstName: string;
-  lastName: string;
-  personalEmail: string;
-  email: string;
-  mobileNumber: string;
-  countryCode: string;
-  gender: string;
-  bloodGroup: string;
-  dateOfBirth: moment.Moment | any;
-  role: string;
-  designation: string;
-  branch: string;
-  dateOfJoining: string;
-  reportingManagerId: string | null;
-  reportingMangerName: string | null;
-  reportingManagerEmail: string | null;
-  skills: string[];
-  employmentType: string;
-  internshipEndDate: string;
-  internshipDuration: string;
-  shiftTiming: string;
-  willingToTravel: string;
-  primaryProject: string;
-  projects: string[];
-  department: string;
+  lastName?: string;
+  email?: string;
+  personalEmail?: string;
+  mobileNumber?: string;
+  countryCode?: string;
+  gender?: string;
+  bloodGroup?: string;
+  dateOfBirth?: string;
+  role?: string;
+  designation?: string;
+  branch?: string;
+  dateOfJoining?: string;
+  reportingManagerId?: string;
+  reportingMangerName?: string;
+  reportingManagerEmail?: string;
+  skills?: string[];
+  employmentType?: string;
+  department?: string;
+  willingToTravel: boolean;
   currentAddressLine1: string;
   currentAddressLine2: string;
   currentAddressLandmark: string;
@@ -87,16 +75,163 @@ interface UserDetails {
   emergencyContactMobileNumber: string;
   emergencyContactPersonName: string;
   alternateMobileNumber: string;
+  primaryProject: string;
+  projects: string[];
+}
+
+interface UserContextType {
+  userDetails: UserDetails | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+interface UserActionsContextType {
+  updateUserDetails: (newDetails: Partial<UserDetails>) => void;
+  resetUserDetails: () => void;
+  fetchUserDetails: () => Promise<void>;
+}
+
+// Create contexts
+const UserContext = createContext<UserContextType>({
+  userDetails: null,
+  isLoading: false,
+  error: null,
+});
+
+const UserActionsContext = createContext<UserActionsContextType>({
+  updateUserDetails: () => {},
+  resetUserDetails: () => {},
+  fetchUserDetails: async () => {},
+});
+
+// Provider component
+export function UserProvider({ children }: { children: React.ReactNode }) {
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const updateUserDetails = (newDetails: Partial<UserDetails>) => {
+    setUserDetails(
+      (prevDetails) =>
+        ({
+          ...prevDetails,
+          ...newDetails,
+        } as UserDetails)
+    );
+  };
+
+  const resetUserDetails = () => {
+    setUserDetails(null);
+    setError(null);
+  };
+
+  const fetchUserDetails = async () => {
+    setIsLoading(true);
+    setError(null);
+    const userRole = localStorage.getItem("role");
+
+    try {
+      const response = await api.get(
+        userRole === "ROLE_HR"
+          ? "/api/v1/admin/fetch-user-info"
+          : "/api/v1/employee/profile"
+      );
+
+      const userData = response.data.response.data;
+
+      const mappedData: UserDetails = {
+        profileUrl: userData.profileUrl,
+        userId: userData.userId,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        personalEmail: userData.personalEmail,
+        mobileNumber: userData.mobileNumber,
+        countryCode: userData.countryCode,
+        gender: userData.gender,
+        bloodGroup: userData.bloodGroup,
+        dateOfBirth: userData.dateOfBirth,
+        role: userData.role,
+        designation: userData.designation,
+        branch: userData.branch,
+        dateOfJoining: userData.dateOfJoining,
+        reportingManagerId: userData.reportingManagerId,
+        reportingMangerName: userData.reportingMangerName,
+        reportingManagerEmail: userData.reportingManagerEmail,
+        skills: userData.skills,
+        employmentType: userData.employmentType,
+        department: userData.department,
+        alternateMobileNumber: userData?.alternateMobileNumber,
+        emergencyContactPersonName: userData?.emergencyContactPersonName,
+        emergencyContactMobileNumber: userData?.emergencyContactMobileNumber,
+        emergencyContactMobileNumberCountryCode:
+          userData?.emergencyContactMobileNumberCountryCode,
+        alternateMobileNumberCountryCode:
+          userData?.alternateMobileNumberCountryCode,
+        willingToTravel: userData?.willingToTravel,
+        primaryProject: userData?.primaryProject,
+        projects: userData?.projects,
+        currentAddressLine1: userData?.currentAddress?.addressLine1,
+        currentAddressLine2: userData?.currentAddress?.addressLine2,
+        currentAddressLandmark: userData?.currentAddress?.landmark,
+        currentAddressNationality: userData?.currentAddress?.nationality,
+        currentAddressZipcode: userData?.currentAddress?.zipcode,
+        currentAddressState: userData?.currentAddress?.state,
+        currentAddressDistrict: userData?.currentAddress?.district,
+        permanentAddressLine1: userData?.permanentAddress?.addressLine1,
+        permanentAddressLine2: userData?.permanentAddress?.addressLine2,
+        permanentAddressLandmark: userData?.permanentAddress?.landmark,
+        permanentAddressNationality: userData?.permanentAddress?.nationality,
+        permanentAddressZipcode: userData?.permanentAddress?.zipcode,
+        permanentAddressState: userData?.permanentAddress?.state,
+        permanentAddressDistrict: userData?.permanentAddress?.district,
+        // Map other fields as needed
+      };
+
+      setUserDetails(mappedData);
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch user details";
+      setError(errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <UserContext.Provider value={{ userDetails, isLoading, error }}>
+      <UserActionsContext.Provider
+        value={{ updateUserDetails, resetUserDetails, fetchUserDetails }}
+      >
+        {children}
+      </UserActionsContext.Provider>
+    </UserContext.Provider>
+  );
+}
+
+// Custom hooks
+export function useUser() {
+  return useContext(UserContext);
+}
+
+export function useUserActions() {
+  return useContext(UserActionsContext);
 }
 
 export default function Header() {
+  const { userDetails, isLoading } = useUser();
+  const { fetchUserDetails } = useUserActions();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [userRole, setUserRole] = useState("");
-  const [userProfileDetails, setUserProfileDetails] =
-    useState<UserDetails | null>(null);
-  const [token, setToken] = useState(localStorage.getItem("authToken") || "");
-  const [decoded, setDecoded] = useState<DecodedToken | null>(null);
+
+  const userRole: string | null = localStorage.getItem("role");
+
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const showToast = React.useCallback(
@@ -111,105 +246,8 @@ export default function Header() {
     [toast]
   );
 
-  const [userDetails, setUserDetails] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    profileUrl: "",
-    lastLogin: "",
-    role: "",
-  });
-
-  const fetchUserInfo = async () => {
-    let response;
-    try {
-      if (userRole === "ROLE_HR") {
-        response = await api.get("/api/v1/admin/fetch-user-info");
-      } else {
-        response = await api.get("/api/v1/employee/profile");
-      }
-      const user = response.data.response.data;
-      setUserDetails({
-        firstName: user?.firstName,
-        lastName: user?.lastName,
-        email: user?.email,
-        profileUrl: user?.profileUrl,
-        lastLogin: user?.lastLogin,
-        role: user?.role,
-      });
-
-      const mappedData: UserDetails = {
-        key: user?.userId,
-        profileUrl: user?.profileUrl,
-        userId: user?.userId,
-        firstName: user?.firstName,
-        lastName: user?.lastName,
-        personalEmail: user?.personalEmail,
-        email: user?.email,
-        mobileNumber: user?.mobileNumber,
-        countryCode: user?.countryCode,
-        gender: user?.gender,
-        bloodGroup: user?.bloodGroup,
-        dateOfBirth: user?.dateOfBirth,
-        role: user?.role,
-        employmentType: user?.employmentType,
-        internshipEndDate: user?.internshipEndDate,
-        internshipDuration: user?.internshipDuration,
-        shiftTiming: user?.shiftTiming,
-        designation: user?.designation,
-        branch: user?.branch,
-        dateOfJoining: user?.dateOfJoining,
-        reportingManagerId: user?.reportingManagerId,
-        reportingMangerName: user?.reportingMangerName,
-        reportingManagerEmail: user?.reportingManagerEmail,
-        skills: user?.skills,
-        department: user?.department,
-        alternateMobileNumber: user?.alternateMobileNumber,
-        emergencyContactPersonName: user?.emergencyContactPersonName,
-        emergencyContactMobileNumber: user?.emergencyContactMobileNumber,
-        emergencyContactMobileNumberCountryCode:
-          user?.emergencyContactMobileNumberCountryCode,
-        alternateMobileNumberCountryCode:
-          user?.alternateMobileNumberCountryCode,
-        willingToTravel: user?.willingToTravel,
-        primaryProject: user?.primaryProject,
-        projects: user?.projects,
-        currentAddressLine1: user?.currentAddress?.addressLine1,
-        currentAddressLine2: user?.currentAddress?.addressLine2,
-        currentAddressLandmark: user?.currentAddress?.landmark,
-        currentAddressNationality: user?.currentAddress?.nationality,
-        currentAddressZipcode: user?.currentAddress?.zipcode,
-        currentAddressState: user?.currentAddress?.state,
-        currentAddressDistrict: user?.currentAddress?.district,
-        permanentAddressLine1: user?.permanentAddress?.addressLine1,
-        permanentAddressLine2: user?.permanentAddress?.addressLine2,
-        permanentAddressLandmark: user?.permanentAddress?.landmark,
-        permanentAddressNationality: user?.permanentAddress?.nationality,
-        permanentAddressZipcode: user?.permanentAddress?.zipcode,
-        permanentAddressState: user?.permanentAddress?.state,
-        permanentAddressDistrict: user?.permanentAddress?.district,
-      };
-      console.log(mappedData);
-      setUserProfileDetails(mappedData);
-    } catch (error: any) {
-      showToast(error.response.data.message);
-      // if (error.response?.status === 403) {
-      //   toast.warning("Session expired. Redirecting to login page...", {
-      //     duration: 2000,
-      //     onDismiss: () => {
-      //       localStorage.clear();
-      //       navigate("/login");
-      //     },
-      //   });
-      // }
-    }
-  };
-
   useEffect(() => {
-    setToken(localStorage.getItem("authToken") || "");
-    setDecoded(jwtDecode(token || "") as DecodedToken);
-    setUserRole(localStorage.getItem("role") || "");
-    fetchUserInfo();
+    fetchUserDetails();
   }, []);
 
   useEffect(() => {
@@ -234,23 +272,23 @@ export default function Header() {
             { label: "My Projects", path: "/employee/workspace/my-projects" },
           ],
         },
-        {
-          label: "Timesheet",
-          path: "/employee/timesheet",
-          children: [
-            { label: "Calendar", path: "/employee/timesheet/calendar" },
-            { label: "Task Details", path: "/employee/timesheet/task-details" },
-            {
-              label: "Assigned Tasks",
-              path: "/employee/timesheet/assigned-tasks",
-            },
-          ],
-        },
+        // {
+        //   label: "Timesheet",
+        //   path: "/employee/timesheet",
+        //   children: [
+        //     { label: "Calendar", path: "/employee/timesheet/calendar" },
+        //     { label: "Task Details", path: "/employee/timesheet/task-details" },
+        //     {
+        //       label: "Assigned Tasks",
+        //       path: "/employee/timesheet/assigned-tasks",
+        //     },
+        //   ],
+        // },
       ],
       // Add more role-based navigation items as needed
     };
 
-    setNavItems(roleBasedNavItems[userRole] || []);
+    setNavItems(roleBasedNavItems[userRole as string] || []);
   }, [userRole]);
 
   const onLogout = () => {
@@ -297,7 +335,7 @@ export default function Header() {
             <DropdownMenuContent className="w-52">
               {item.children.map((child, childIndex) => (
                 <>
-                  <DropdownMenuItem key={childIndex} className="bg-primary/10">
+                  <DropdownMenuItem key={childIndex} >
                     <Button
                       size="sm"
                       variant="outline"
@@ -305,7 +343,7 @@ export default function Header() {
                         navigate(child.path);
                         setIsOpen(false);
                       }}
-                      className="w-full bg-primary/10 px-3 py-1 hover:bg-primary hover:text-secondary"
+                      className="w-full bg-secondary px-3 py-1 hover:bg-primary hover:text-secondary border-none"
                     >
                       {child.label}
                     </Button>
@@ -331,7 +369,7 @@ export default function Header() {
 
   const handleMenuItemClick = (path: string) => {
     setIsOpen(false); // Close the dropdown
-    navigate(path, { state: userProfileDetails });
+    navigate(path);
   };
 
   return (
@@ -401,15 +439,15 @@ export default function Header() {
                 <Avatar className="h-8 w-8 md:h-10 md:w-10">
                   <AvatarImage
                     className="object-cover"
-                    src={userDetails.profileUrl}
+                    src={userDetails?.profileUrl}
                   />
                   <AvatarFallback>
-                    {userDetails.firstName.slice(0, 2).toUpperCase()}
+                    {userDetails?.firstName?.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block text-sm">
-                  <p className="font-medium">{`${userDetails.firstName} ${userDetails.lastName}`}</p>
-                  <p className="text-muted-foreground">{userDetails.role}</p>
+                  <p className="font-medium">{`${userDetails?.firstName} ${userDetails?.lastName}`}</p>
+                  <p className="text-muted-foreground">{userDetails?.role}</p>
                 </div>
               </div>
             </DropdownMenuTrigger>

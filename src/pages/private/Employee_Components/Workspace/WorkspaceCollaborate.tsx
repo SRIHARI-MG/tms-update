@@ -42,22 +42,18 @@ const WorkspaceCollaborate = () => {
   });
   const [isfetchingData, setIsFetchingData] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
+  const fetchEmployees = async () => {
+    try {
+      setIsFetchingData(true);
+      const response = await api.get("/api/v1/admin/collaborate-employee-list");
+      setEmployees(response.data.response.data);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    } finally {
+      setIsFetchingData(false);
+    }
+  };
   useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        setIsFetchingData(true);
-        const response = await api.get(
-          "/api/v1/admin/collaborate-employee-list"
-        );
-        setEmployees(response.data.response.data);
-      } catch (error) {
-        console.error("Error fetching employees:", error);
-      } finally {
-        setIsFetchingData(false);
-      }
-    };
-
     fetchEmployees();
   }, []);
 

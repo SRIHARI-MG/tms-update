@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/form";
 import LoadingButton from "@/components/ui/loading-button";
 import DynamicTable from "@/components/ui/custom-table";
+import { useUser } from "@/layout/Header";
 
 const formSchema = z.object({
   certificateName: z.string().min(1, "Certificate name is required"),
@@ -70,13 +71,9 @@ interface Certificate {
   description: string;
 }
 
-interface CertificatesSectionProps {
-  userId: string;
-}
-
-export default function CertificatesSection({
-  userId,
-}: CertificatesSectionProps) {
+export default function CertificatesSection() {
+  const { userDetails } = useUser();
+  const userId = userDetails?.userId;
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [isAddingCertificate, setIsAddingCertificate] =
     useState<boolean>(false);
@@ -563,7 +560,6 @@ export default function CertificatesSection({
               columns={columns}
               actions={actions}
               expandedContent={expandedContent}
-              
             />
             {totalPages > 1 && (
               <div className="flex justify-start mt-4 space-x-2">

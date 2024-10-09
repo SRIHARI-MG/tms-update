@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/api/apiService";
+import { useUser } from "@/layout/Header";
+import axios from "axios";
 
 // Validation schema
 const formSchema = z.object({
@@ -83,7 +85,6 @@ interface Previews {
 }
 
 interface DocumentsSectionProps {
-  userId: string;
   isEditing: boolean;
   onEdit: () => void;
   onSave: () => void;
@@ -97,12 +98,13 @@ const defaultValues: FormValues = {
 };
 
 const DocumentsSection: React.FC<DocumentsSectionProps> = ({
-  userId,
   isEditing,
   onEdit,
   onSave,
   onCancel,
 }) => {
+  const { userDetails } = useUser();
+  const userId = userDetails?.userId;
   const [showAlert, setShowAlert] = useState(false);
   const [originalValues, setOriginalValues] =
     useState<FormValues>(defaultValues);
@@ -236,10 +238,8 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
     const data = form.getValues();
     const requestedData = prepareRequestData(data);
 
-    const hasFiles = data.aadhar.file || data.pan.file || data.passport.file;
 
     try {
-      // if (hasFiles) {
       const formData = new FormData();
       if (data.aadhar.file) formData.append("aadharPdf", data.aadhar.file);
       if (data.pan.file) formData.append("panCardPdf", data.pan.file);
@@ -256,14 +256,24 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         className: "fixed bottom-4 right-4  max-w-sm",
       });
       onSave();
-    } catch (error) {
-      console.error("Error updating documents:", error);
-      toast({
-        title: "Error",
-        description: error?.response?.data?.response?.action,
-        variant: "destructive",
-        className: "fixed bottom-4 right-4  max-w-sm",
-      });
+    } catch (error: any) {
+      if (axios.isAxiosError(error)) {
+        console.error("Error updating documents:", error);
+        toast({
+          title: "Error",
+          description: error.response?.data?.response?.action,
+          variant: "destructive",
+          className: "fixed bottom-4 right-4  max-w-sm",
+        });
+      } else {
+        console.error("Unknown error:", error);
+        toast({
+          title: "Error",
+          description: "An unknown error occurred.",
+          variant: "destructive",
+          className: "fixed bottom-4 right-4  max-w-sm",
+        });
+      }
     }
   };
 

@@ -24,13 +24,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import LoadingButton from "@/components/ui/loading-button";
+import { useUser } from "@/layout/Header";
 
-type Props = {
-  userId: string;
-};
 
-export default function BankDetailsSection({ userId }: Props) {
+export default function BankDetailsSection() {
+  const { userDetails } = useUser();
+  const userId = userDetails?.userId;
   const [isEditing, setIsEditing] = useState(false);
   const [bankDetails, setBankDetails] = useState({
     userId: "",

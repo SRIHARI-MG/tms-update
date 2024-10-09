@@ -16,10 +16,10 @@ interface EmployeeCardProps {
 export default function Component(
   props: EmployeeCardProps = {
     avatar: "/placeholder.svg?height=100&width=100",
-    employeeId: "EMP001",
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
+    employeeId: "MGINXXXX",
+    firstName: "XXXX",
+    lastName: "YYY",
+    email: "xxxxx@mind-graph.com",
     role: "Developer",
     designation: "Senior Software Engineer",
     branch: "Coimbatore",
@@ -37,7 +37,7 @@ export default function Component(
   } = props;
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md  bg-background border-none">
       <CardHeader className="flex flex-row items-center gap-4">
         <Avatar className="h-20 w-20">
           <AvatarImage

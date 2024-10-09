@@ -48,38 +48,37 @@ import CertificatesSection from "./CertificatesSection";
 import React from "react";
 import { useToast } from "@/hooks/use-toast";
 import { handleLogout } from "@/utils/authHandler";
-import FormContent from "./FormContent";
 import PageIndicator from "@/components/ui/page-indicator";
+import { useUser, useUserActions } from "@/layout/Header";
 
 interface UserDetails {
-  key: string;
-  profileUrl: string;
+  profileUrl?: string;
   userId: string;
   firstName: string;
-  lastName: string;
-  personalEmail: string;
-  email: string;
-  mobileNumber: string;
-  countryCode: string;
-  gender: string;
-  bloodGroup: string;
-  dateOfBirth: moment.Moment | any;
-  role: string;
-  designation: string;
-  branch: string;
-  dateOfJoining: string;
-  reportingManagerId: string | null;
-  reportingMangerName: string | null;
-  reportingManagerEmail: string | null;
-  skills: string[];
-  employmentType: string;
+  lastName?: string;
+  email?: string;
+  personalEmail?: string;
+  mobileNumber?: string;
+  countryCode?: string;
+  gender?: string;
+  bloodGroup?: string;
+  dateOfBirth?: string;
+  role?: string;
+  designation?: string;
+  branch?: string;
+  dateOfJoining?: string;
+  reportingManagerId?: string;
+  reportingMangerName?: string;
+  reportingManagerEmail?: string;
+  skills?: string[];
+  employmentType?: string;
+  department?: string;
   internshipEndDate: string;
   internshipDuration: string;
   shiftTiming: string;
   willingToTravel: boolean;
   primaryProject: string;
   projects: string[];
-  department: string;
   currentAddressLine1: string;
   currentAddressLine2: string;
   currentAddressLandmark: string;
@@ -115,6 +114,18 @@ interface Documents {
   aadhar: AadharDetails;
   pan: DocumentDetails;
   passport: DocumentDetails;
+}
+
+interface UserContextType {
+  userDetails: UserDetails | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+interface UserActionsContextType {
+  updateUserDetails: (newDetails: Partial<UserDetails>) => void;
+  resetUserDetails: () => void;
+  fetchUserDetails: () => Promise<void>;
 }
 
 const formSections = [
@@ -167,38 +178,76 @@ const formSections = [
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
-  const userProfileDetails: UserDetails = location.state || {};
+  const { userDetails } = useUser();
+  const { updateUserDetails } = useUserActions();
   const [selectedNav, setSelectedNav] = useState("Profile Details");
   const [isEditing, setIsEditing] = useState(false);
   const [activePage, setActivePage] = useState(formSections[0].title);
-  const [editedDetails, setEditedDetails] = useState<any>({
-    ...userProfileDetails,
-  });
+  const [editedDetails, setEditedDetails] = useState<any>({});
   const [errors, setErrors] = useState<any>({});
   const [isEditingDocuments, setIsEditingDocuments] = useState<boolean>(false);
 
   const [phoneNumbers, setPhoneNumbers] = useState({
     mobileNumber: {
-      countryCode: userProfileDetails.countryCode,
-      number: userProfileDetails.mobileNumber,
+      countryCode: "",
+      number: "",
     },
     alternateMobileNumber: {
-      countryCode: userProfileDetails.alternateMobileNumberCountryCode,
-      number: userProfileDetails.alternateMobileNumber,
+      countryCode: "",
+      number: "",
     },
     emergencyContactMobileNumber: {
-      countryCode: userProfileDetails.emergencyContactMobileNumberCountryCode,
-      number: userProfileDetails.emergencyContactMobileNumber,
+      countryCode: "",
+      number: "",
     },
   });
+
+  useEffect(() => {
+    if (userDetails) {
+      setEditedDetails({
+        ...userDetails,
+        // Add address fields
+        currentAddressLine1: userDetails.currentAddressLine1 || "",
+        currentAddressLine2: userDetails.currentAddressLine2 || "",
+        currentAddressLandmark: userDetails.currentAddressLandmark || "",
+        currentAddressNationality: userDetails.currentAddressNationality || "",
+        currentAddressZipcode: userDetails.currentAddressZipcode || "",
+        currentAddressState: userDetails.currentAddressState || "",
+        currentAddressDistrict: userDetails.currentAddressDistrict || "",
+        permanentAddressLine1: userDetails.permanentAddressLine1 || "",
+        permanentAddressLine2: userDetails.permanentAddressLine2 || "",
+        permanentAddressLandmark: userDetails.permanentAddressLandmark || "",
+        permanentAddressNationality:
+          userDetails.permanentAddressNationality || "",
+        permanentAddressZipcode: userDetails.permanentAddressZipcode || "",
+        permanentAddressState: userDetails.permanentAddressState || "",
+        permanentAddressDistrict: userDetails.permanentAddressDistrict || "",
+      });
+
+      setPhoneNumbers({
+        mobileNumber: {
+          countryCode: userDetails.countryCode || "",
+          number: userDetails.mobileNumber || "",
+        },
+        alternateMobileNumber: {
+          countryCode: userDetails.alternateMobileNumberCountryCode || "",
+          number: userDetails.alternateMobileNumber || "",
+        },
+        emergencyContactMobileNumber: {
+          countryCode:
+            userDetails.emergencyContactMobileNumberCountryCode || "",
+          number: userDetails.emergencyContactMobileNumber || "",
+        },
+      });
+    }
+  }, [userDetails]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [avatarUrl, setAvatarUrl] = useState(userProfileDetails.profileUrl);
+  const [avatarUrl, setAvatarUrl] = useState(userDetails?.profileUrl);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [userRole, setUserRole] = useState("");
 
@@ -301,21 +350,38 @@ export default function ProfilePage() {
 
   const toggleEdit = () => {
     if (isEditing) {
-      // If cancelling, reset the edited details
-      setEditedDetails({ ...userProfileDetails });
+      // If cancelling, reset the edited details to current userDetails
+      setEditedDetails({
+        ...userDetails,
+        currentAddressLine1: userDetails?.currentAddressLine1 || "",
+        currentAddressLine2: userDetails?.currentAddressLine2 || "",
+        currentAddressLandmark: userDetails?.currentAddressLandmark || "",
+        currentAddressNationality: userDetails?.currentAddressNationality || "",
+        currentAddressZipcode: userDetails?.currentAddressZipcode || "",
+        currentAddressState: userDetails?.currentAddressState || "",
+        currentAddressDistrict: userDetails?.currentAddressDistrict || "",
+        permanentAddressLine1: userDetails?.permanentAddressLine1 || "",
+        permanentAddressLine2: userDetails?.permanentAddressLine2 || "",
+        permanentAddressLandmark: userDetails?.permanentAddressLandmark || "",
+        permanentAddressNationality:
+          userDetails?.permanentAddressNationality || "",
+        permanentAddressZipcode: userDetails?.permanentAddressZipcode || "",
+        permanentAddressState: userDetails?.permanentAddressState || "",
+        permanentAddressDistrict: userDetails?.permanentAddressDistrict || "",
+      });
       setPhoneNumbers({
         mobileNumber: {
-          countryCode: userProfileDetails.countryCode,
-          number: userProfileDetails.mobileNumber,
+          countryCode: userDetails?.countryCode || "",
+          number: userDetails?.mobileNumber || "",
         },
         alternateMobileNumber: {
-          countryCode: userProfileDetails.alternateMobileNumberCountryCode,
-          number: userProfileDetails.alternateMobileNumber,
+          countryCode: userDetails?.alternateMobileNumberCountryCode || "",
+          number: userDetails?.alternateMobileNumber || "",
         },
         emergencyContactMobileNumber: {
           countryCode:
-            userProfileDetails.emergencyContactMobileNumberCountryCode,
-          number: userProfileDetails.emergencyContactMobileNumber,
+            userDetails?.emergencyContactMobileNumberCountryCode || "",
+          number: userDetails?.emergencyContactMobileNumber || "",
         },
       });
     }
@@ -421,7 +487,7 @@ export default function ProfilePage() {
       console.error("Error uploading avatar:", error);
       alert("Failed to upload avatar. Please try again.");
       // Revert to original avatar
-      setAvatarUrl(userProfileDetails.profileUrl);
+      setAvatarUrl(userDetails?.profileUrl);
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -432,7 +498,7 @@ export default function ProfilePage() {
       let payload = new FormData();
 
       // Create the requestedData object
-      const updatedProfileData = {
+      const updatedProfileData: Partial<UserDetails> = {
         userId: editedDetails.userId,
         firstName: editedDetails.firstName,
         lastName: editedDetails.lastName,
@@ -454,24 +520,20 @@ export default function ProfilePage() {
         emergencyContactPersonName: editedDetails.emergencyContactPersonName,
         emergencyContactMobileNumber:
           editedDetails.emergencyContactMobileNumber,
-        currentAddress: {
-          addressLine1: editedDetails.currentAddressLine1,
-          addressLine2: editedDetails.currentAddressLine2,
-          landmark: editedDetails.currentAddressLandmark,
-          nationality: editedDetails.currentAddressNationality,
-          zipcode: editedDetails.currentAddressZipcode,
-          state: editedDetails.currentAddressState,
-          district: editedDetails.currentAddressDistrict,
-        },
-        permanentAddress: {
-          addressLine1: editedDetails.permanentAddressLine1,
-          addressLine2: editedDetails.permanentAddressLine2,
-          landmark: editedDetails.permanentAddressLandmark,
-          nationality: editedDetails.permanentAddressNationality,
-          zipcode: editedDetails.permanentAddressZipcode,
-          state: editedDetails.permanentAddressState,
-          district: editedDetails.permanentAddressDistrict,
-        },
+        currentAddressLine1: editedDetails.currentAddressLine1,
+        currentAddressLine2: editedDetails.currentAddressLine2,
+        currentAddressLandmark: editedDetails.currentAddressLandmark,
+        currentAddressNationality: editedDetails.currentAddressNationality,
+        currentAddressZipcode: editedDetails.currentAddressZipcode,
+        currentAddressState: editedDetails.currentAddressState,
+        currentAddressDistrict: editedDetails.currentAddressDistrict,
+        permanentAddressLine1: editedDetails.permanentAddressLine1,
+        permanentAddressLine2: editedDetails.permanentAddressLine2,
+        permanentAddressLandmark: editedDetails.permanentAddressLandmark,
+        permanentAddressNationality: editedDetails.permanentAddressNationality,
+        permanentAddressZipcode: editedDetails.permanentAddressZipcode,
+        permanentAddressState: editedDetails.permanentAddressState,
+        permanentAddressDistrict: editedDetails.permanentAddressDistrict,
       };
 
       // Always append requestedData
@@ -493,6 +555,8 @@ export default function ProfilePage() {
       }
 
       console.log("Profile update response:", response);
+      updateUserDetails(response.data.response.data);
+
       // Handle success (e.g., show a success message, update local state)
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -518,7 +582,7 @@ export default function ProfilePage() {
   const handleSaveDocuments = async (updatedDocuments: Documents) => {
     try {
       // Make API call to save updated documents
-      // await api.put(`/api/documents/${userProfileDetails.userId}`, updatedDocuments);
+      // await api.put(`/api/documents/${userDetails.userId}`, updatedDocuments);
       setIsEditingDocuments(false);
       // Optionally, update local state or refetch data
     } catch (error) {
@@ -552,12 +616,12 @@ export default function ProfilePage() {
                 >
                   <Avatar className="h-16 w-16 border">
                     <AvatarImage
-                      src={avatarUrl}
-                      alt={userProfileDetails.firstName}
+                      src={userDetails?.profileUrl}
+                      alt={userDetails?.firstName}
                       className="object-cover"
                     />
                     <AvatarFallback>
-                      {userProfileDetails.firstName.slice(0, 2).toUpperCase()}
+                      {userDetails?.firstName.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -576,9 +640,9 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-semibold">{`${userProfileDetails.firstName} ${userProfileDetails.lastName}`}</h2>
+                  <h2 className="text-2xl font-semibold">{`${userDetails?.firstName} ${userDetails?.lastName}`}</h2>
                   <p className="text-md text-muted-foreground">
-                    {userProfileDetails.role}
+                    {userDetails?.role}
                   </p>
                 </div>
               </div>
@@ -869,21 +933,18 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
-            {selectedNav === "Bank Details" && (
-              <BankDetailsSection userId={userProfileDetails.userId} />
-            )}
+            {selectedNav === "Bank Details" && <BankDetailsSection />}
             {selectedNav === "Documents" && (
               <DocumentsSection
-                userId={userProfileDetails.userId}
                 isEditing={isEditingDocuments}
                 onEdit={handleEditDocuments}
-                onSave={handleSaveDocuments}
+                onSave={() => {
+                  handleSaveDocuments;
+                }}
                 onCancel={handleCancelDocuments}
               />
             )}
-            {selectedNav === "Certifications" && (
-              <CertificatesSection userId={userProfileDetails.userId} />
-            )}
+            {selectedNav === "Certifications" && <CertificatesSection />}
             {selectedNav === "Change Password" && <ChangePasswordSection />}
           </CardContent>
         </Card>
