@@ -1,0 +1,723 @@
+import React, { useEffect, useState } from "react";
+import RequestSection from "./RequestSection";
+import api from "@/api/apiService";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import TagInput from "@/components/ui/tag-input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { X } from "lucide-react";
+import { format } from "path";
+
+const requestSections = [
+  {
+    title: "Profile Request",
+    apiUrl: "/api/v1/employee/my-update-requests",
+  },
+  {
+    title: "Bank Details Request",
+    apiUrl: "/api/v1/bankDetails/my-bank-details-update-requests",
+  },
+  {
+    title: "Certificate Request",
+    apiUrl: "/api/v1/certificate/my-certificate-update-requests",
+  },
+  {
+    title: "Documents Request",
+    apiUrl: "/api/v1/document/my-document-update-requests",
+  },
+];
+
+const TrackRequestPage = () => {
+  const [activePage, setActivePage] = useState<string>(
+    requestSections[0].title
+  );
+  const [activeApiUrl, setActiveApiUrl] = useState<string>(
+    requestSections[0].apiUrl
+  );
+  const [requestedData, setRequestedData] = useState<any[]>([]);
+  const [selectedData, setSelectedData] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState<any>({});
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [filteredData, setFilteredData] = useState<any[]>([]);
+
+  // Status options
+  const statusOptions = ["PENDING", "APPROVED", "REJECTED", "INPROGRESS"];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await api.get(activeApiUrl);
+      setRequestedData(response.data.response.data);
+    };
+    fetchData();
+  }, [activeApiUrl]);
+
+  useEffect(() => {
+    if (selectedData) {
+      setFormData(selectedData.requestedData);
+      setIsModalOpen(true);
+    }
+  }, [selectedData]);
+
+  useEffect(() => {
+    if (statusFilter) {
+      const filtered = requestedData.filter(
+        (item) => item.requestStatus.toUpperCase() === statusFilter
+      );
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(requestedData);
+    }
+  }, [requestedData, statusFilter]);
+
+  // Clear filter handler
+  const handleClearFilter = () => {
+    setStatusFilter("");
+  };
+
+  const getAvatarFallback = (firstName: string) => {
+    return firstName?.substring(0, 2).toUpperCase();
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusColors: { [key: string]: string } = {
+      PENDING: "bg-yellow-500",
+      APPROVED: "bg-green-500",
+      REJECTED: "bg-red-500",
+      INPROGRESS: "bg-blue-500",
+    };
+
+    return (
+      <Badge
+        className={`${statusColors[status]} hover:${statusColors[status]} text-white`}
+      >
+        {status}
+      </Badge>
+    );
+  };
+
+  const profileColumn = [
+    {
+      header: "Request ID",
+      accessor: "requestId",
+      sortable: true,
+      width: "10%",
+    },
+    {
+      header: "Profile",
+      accessor: (data: any) => (
+        <Avatar className="h-12 w-12">
+          <AvatarImage
+            className="object-cover"
+            src={
+              data.requestedData.profileUrl ||
+              data.previousData.profileUrl ||
+              undefined
+            }
+          />
+          <AvatarFallback>
+            {getAvatarFallback(data.requestedData.firstName)}
+          </AvatarFallback>
+        </Avatar>
+      ),
+      width: "5%",
+    },
+    {
+      header: "Name",
+      accessor: (data: any) => (
+        <div className="flex items-center space-x-2">
+          <p>{data.previousData.firstName}</p>
+          <p>{data.previousData.lastName}</p>
+        </div>
+      ),
+      width: "20%",
+    },
+    {
+      header: "Requested Date",
+      accessor: "requestedDate",
+      sortable: true,
+      width: "25%",
+    },
+    {
+      header: "Status",
+      accessor: (data: any) =>
+        getStatusBadge(data.requestStatus?.toUpperCase()),
+      sortable: true,
+      width: "20%",
+    },
+    {
+      header: "View All Updates",
+      accessor: (data: any) => (
+        <Button className="w-full" onClick={() => setSelectedData(data)}>
+          View Updates
+        </Button>
+      ),
+      width: "5%",
+      className: "py-2",
+    },
+  ];
+
+  const generateColumns = (sectionTitle: string) => {
+    if (sectionTitle === "Profile Request") {
+      return profileColumn;
+    }
+
+    const commonColumns = [
+      {
+        header: "Request ID",
+        accessor: "requestId",
+        sortable: true,
+        width: "10%",
+      },
+      {
+        header: "Requested Date",
+        accessor: "requestedDate",
+        sortable: true,
+        width: "25%",
+      },
+      {
+        header: "Status",
+        accessor: (data: any) =>
+          getStatusBadge(data.requestStatus?.toUpperCase()),
+        sortable: true,
+        width: "20%",
+      },
+      {
+        header: "View All Updates",
+        accessor: (data: any) => (
+          <Button className="w-full" onClick={() => setSelectedData(data)}>
+            View Updates
+          </Button>
+        ),
+        width: "5%",
+        className: "py-2",
+      },
+    ];
+
+    const specificColumns: { [key: string]: any[] } = {
+      "Bank Details Request": [
+        {
+          header: "Account Holder Name",
+          accessor: (data: any) => (
+            <div className="flex items-center space-x-2">
+              <p>{data.previousData.accountHolderName}</p>
+            </div>
+          ),
+          width: "20%",
+        },
+        {
+          header: "Bank Name",
+          accessor: (data: any) => (
+            <div className="flex items-center space-x-2">
+              <p>{data.previousData.bankName}</p>
+            </div>
+          ),
+          width: "20%",
+        },
+      ],
+      "Certificate Request": [
+        {
+          header: "Certificate Name",
+          accessor: (data: any) => data.requestedData.certificateName,
+          width: "20%",
+        },
+      ],
+      "Documents Request": [],
+    };
+
+    return [...specificColumns[sectionTitle], ...commonColumns];
+  };
+
+  const ReadOnlyField = ({
+    label,
+    value,
+    previousValue,
+    isTagInput = false,
+    isUrl = false,
+  }: {
+    label: string;
+    value: string | string[];
+    previousValue: string | string[];
+    isTagInput?: boolean;
+    isUrl?: boolean;
+  }) => {
+    console.log(value, previousValue);
+    const hasChanged = JSON.stringify(value) !== JSON.stringify(previousValue);
+
+    if (isUrl) {
+      const isPdf =
+        typeof value === "string" && value.toLowerCase().includes(".pdf");
+      return (
+        <div className="space-y-1">
+          <Label>{label}</Label>
+          {isPdf ? (
+            <iframe src={value as string} className="w-full h-64" />
+          ) : (
+            <Avatar
+              className={`h-24 w-24 ${
+                hasChanged && value !== null ? "border-2 border-red-500" : ""
+              }`}
+            >
+              <AvatarImage className="object-cover" src={value as string} />
+              <AvatarFallback>
+                {label.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-1">
+        <Label>{label}</Label>
+        {isTagInput ? (
+          <TagInput
+            initialTags={value as string[]}
+            className={
+              hasChanged && value !== null ? "border-2 border-red-500" : ""
+            }
+          />
+        ) : (
+          <Input
+            value={
+              typeof value === "boolean"
+                ? value
+                  ? "Yes"
+                  : "No"
+                : (value as string) || ""
+            }
+            readOnly
+            className={`bg-gray-100 focus-visible:ring-0 focus-visible:ring-offset-0 ${
+              hasChanged && value !== null ? "border-2 border-red-500" : ""
+            }`}
+          />
+        )}
+      </div>
+    );
+  };
+
+  const AddressFields = ({
+    address,
+    previousAddress,
+    type,
+  }: {
+    address: any;
+    previousAddress: any;
+    type: string;
+  }) => (
+    <>
+      <h3 className="font-semibold text-lg">{type} Address</h3>
+      <div className="grid grid-cols-2 gap-4">
+        <ReadOnlyField
+          label="Address Line 1"
+          value={address.addressLine1}
+          previousValue={previousAddress.addressLine1}
+        />
+        <ReadOnlyField
+          label="Address Line 2"
+          value={address.addressLine2}
+          previousValue={previousAddress.addressLine2}
+        />
+        <ReadOnlyField
+          label="Landmark"
+          value={address.landmark}
+          previousValue={previousAddress.landmark}
+        />
+        <ReadOnlyField
+          label="District"
+          value={address.district}
+          previousValue={previousAddress.district}
+        />
+        <ReadOnlyField
+          label="Zipcode"
+          value={address.zipcode}
+          previousValue={previousAddress.zipcode}
+        />
+        <ReadOnlyField
+          label="State"
+          value={address.state}
+          previousValue={previousAddress.state}
+        />
+        <ReadOnlyField
+          label="Nationality"
+          value={address.nationality}
+          previousValue={previousAddress.nationality}
+        />
+      </div>
+    </>
+  );
+
+  const renderDialogContent = () => {
+    if (activePage === "Profile Request") {
+      return (
+        <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
+          <div className="flex justify-center mb-4">
+            <Avatar
+              className={`${
+                selectedData?.requestedData.profileUrl
+                  ? "border-red-500 border-2"
+                  : ""
+              } w-24 h-24`}
+            >
+              <AvatarImage
+                className="object-cover"
+                src={formData.profileUrl || undefined}
+              />
+              <AvatarFallback>
+                {getAvatarFallback(formData.firstName)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <ReadOnlyField
+              label="First Name"
+              value={formData.firstName}
+              previousValue={selectedData?.previousData?.firstName || ""}
+            />
+            <ReadOnlyField
+              label="Last Name"
+              value={formData.lastName}
+              previousValue={selectedData?.previousData.lastName || ""}
+            />
+            <ReadOnlyField
+              label="Personal Email"
+              value={formData.personalEmail}
+              previousValue={selectedData?.previousData.personalEmail || ""}
+            />
+            <ReadOnlyField
+              label="Date of Birth"
+              value={formData.dateOfBirth}
+              previousValue={selectedData?.previousData.dateOfBirth || ""}
+            />
+            <ReadOnlyField
+              label="Gender"
+              value={formData.gender}
+              previousValue={selectedData?.previousData.gender || ""}
+            />
+            <ReadOnlyField
+              label="Blood Group"
+              value={formData.bloodGroup}
+              previousValue={selectedData?.previousData.bloodGroup || ""}
+            />
+            <ReadOnlyField
+              label="Mobile Number"
+              value={formData.mobileNumber}
+              previousValue={selectedData?.previousData.mobileNumber || ""}
+            />
+            <ReadOnlyField
+              label="Alternate Mobile Number"
+              value={formData.alternateMobileNumber}
+              previousValue={
+                selectedData?.previousData.alternateMobileNumber || ""
+              }
+            />
+            <ReadOnlyField
+              label="Emergency Contact Mobile Number"
+              value={formData.emergencyContactMobileNumber}
+              previousValue={
+                selectedData?.previousData.emergencyContactMobileNumber || ""
+              }
+            />
+            <ReadOnlyField
+              label="Emergency Contact Person Name"
+              value={formData.emergencyContactPersonName}
+              previousValue={
+                selectedData?.previousData.emergencyContactPersonName || ""
+              }
+            />
+            <ReadOnlyField
+              label="Willing to Travel"
+              value={formData.willingToTravel}
+              previousValue={
+                selectedData?.previousData.willingToTravel ? "Yes" : "No"
+              }
+            />
+            <ReadOnlyField
+              label="Employment Type"
+              value={formData.employmentType}
+              previousValue={selectedData?.previousData.employmentType || ""}
+            />
+            <ReadOnlyField
+              label="Shift Timing"
+              value={formData.shiftTiming}
+              previousValue={selectedData?.previousData.shiftTiming || ""}
+            />
+            <ReadOnlyField
+              label="Skills"
+              value={
+                Array.isArray(formData.skills)
+                  ? formData.skills
+                  : formData.skills?.split(", ") || []
+              }
+              previousValue={selectedData?.previousData.skills || ""}
+              isTagInput={true}
+            />
+          </div>
+          <div className="space-y-4">
+            <AddressFields
+              address={formData.currentAddress}
+              previousAddress={selectedData?.previousData.currentAddress}
+              type="Current"
+            />
+            <AddressFields
+              address={formData.permanentAddress}
+              previousAddress={selectedData?.previousData.permanentAddress}
+              type="Permanent"
+            />
+          </div>
+        </div>
+      );
+    } else if (activePage === "Bank Details Request") {
+      return (
+        <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
+          <div className="grid grid-cols-2 gap-4">
+            <ReadOnlyField
+              label="Account Holder Name"
+              value={formData.accountHolderName}
+              previousValue={selectedData?.previousData.accountHolderName || ""}
+            />
+            <ReadOnlyField
+              label="Account Number"
+              value={formData.accountNumber}
+              previousValue={selectedData?.previousData.accountNumber || ""}
+            />
+            <ReadOnlyField
+              label="IFSC Code"
+              value={formData.ifscCode}
+              previousValue={selectedData?.previousData.ifscCode || ""}
+            />
+            <ReadOnlyField
+              label="Bank Name"
+              value={formData.bankName}
+              previousValue={selectedData?.previousData.bankName || ""}
+            />
+            <ReadOnlyField
+              label="Branch Name"
+              value={formData.branchName}
+              previousValue={selectedData?.previousData.branchName || ""}
+            />
+            <ReadOnlyField
+              label="Cancelled Cheque"
+              value={formData.chequeProofUrl}
+              previousValue={selectedData?.previousData.chequeProofUrl || ""}
+              isUrl={true}
+            />
+          </div>
+        </div>
+      );
+    } else if (activePage === "Certificate Request") {
+      return (
+        <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
+          <div className="grid grid-cols-2 gap-4">
+            <ReadOnlyField
+              label="Certificate Name"
+              value={formData.certificateName}
+              previousValue={selectedData?.previousData.certificateName || ""}
+            />
+            <ReadOnlyField
+              label="Credential ID"
+              value={formData.credentialId}
+              previousValue={selectedData?.previousData.credentialId || ""}
+            />
+            <ReadOnlyField
+              label="Certificate Number"
+              value={formData.certificateNumber}
+              previousValue={selectedData?.previousData.certificateNumber || ""}
+            />
+            <ReadOnlyField
+              label="Description"
+              value={formData.description}
+              previousValue={selectedData?.previousData.description || ""}
+            />
+            <ReadOnlyField
+              label="Certificate URL"
+              value={formData.certificatePdfUrl || formData.certificateUrl}
+              previousValue={
+                selectedData?.previousData.certificatePdfUrl ||
+                selectedData?.previousData.certificateUrl ||
+                ""
+              }
+              isUrl={true}
+            />
+          </div>
+        </div>
+      );
+    } else if (activePage === "Documents Request") {
+      return (
+        <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
+          <div className="space-y-4">
+            <div className="space-y-4">
+              <p className="text-md font-semibold">Aadhar Details</p>
+              <div className="grid grid-cols-2 gap-4">
+                <ReadOnlyField
+                  label="Aadhar Number"
+                  value={formData.aadharNumber}
+                  previousValue={selectedData?.previousData.aadharNumber || ""}
+                />
+                <ReadOnlyField
+                  label="Name as in Aadhar"
+                  value={formData.aadharAsInAadhar}
+                  previousValue={
+                    selectedData?.previousData.aadharAsInAadhar || ""
+                  }
+                />
+                <ReadOnlyField
+                  label="Linked Mobile Number"
+                  value={formData.mobileNumberInAadhar}
+                  previousValue={
+                    selectedData?.previousData.mobileNumberInAadhar || ""
+                  }
+                />
+
+                {formData.aadharUrl && (
+                  <ReadOnlyField
+                    label="Aadhar Preview"
+                    value={formData.aadharUrl}
+                    previousValue={selectedData?.previousData.aadharUrl || ""}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-md font-semibold">Aadhar Details</p>
+              <div className="grid grid-cols-2 gap-4">
+                <ReadOnlyField
+                  label="PAN Number"
+                  value={formData.panCardNumber}
+                  previousValue={selectedData?.previousData.panCardNumber || ""}
+                />
+                <ReadOnlyField
+                  label="Name as in PAN Card"
+                  value={formData.nameAsInPanCard}
+                  previousValue={
+                    selectedData?.previousData.nameAsInPanCard || ""
+                  }
+                />
+
+                {formData.panCardUrl && (
+                  <ReadOnlyField
+                    label="PAN Preview"
+                    value={formData.panCardUrl}
+                    previousValue={selectedData?.previousData.panCardUrl || ""}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-md font-semibold">Passport Details</p>
+              <div className="grid grid-cols-2 gap-4">
+                <ReadOnlyField
+                  label="PAN Number"
+                  value={formData.panCardNumber}
+                  previousValue={selectedData?.previousData.panCardNumber || ""}
+                />
+                <ReadOnlyField
+                  label="Name as in Passport Card"
+                  value={formData.nameAsInPassport}
+                  previousValue={
+                    selectedData?.previousData.nameAsInPassport || ""
+                  }
+                />
+
+                {formData.passportUrl && (
+                  <ReadOnlyField
+                    label="Passport Preview"
+                    value={formData.passportUrl}
+                    previousValue={selectedData?.previousData.passportUrl || ""}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div className="">
+      <h1 className="text-2xl font-semibold mb-4">Track Requests</h1>
+      <div className="flex justify-between w-full mb-4">
+        <nav className="w-1/2">
+          <ul className="flex  justify-between items-center border-b border-gray-200">
+            {requestSections.map((page) => (
+              <li key={page.title} className="flex-1">
+                <button
+                  onClick={() => {
+                    setActiveApiUrl(page.apiUrl);
+                    setActivePage(page.title);
+                  }}
+                  className={`w-full py-2 px-1 text-center text-md font-medium text-gray-500 hover:text-gray-700 focus:outline-none
+                    ${
+                      activePage === page.title &&
+                      `text-primary border-b-2 border-primary`
+                    }`}
+                >
+                  {page.title}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="flex gap-2">
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => setStatusFilter(value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="default" onClick={handleClearFilter}>
+            Clear Filter
+          </Button>
+        </div>
+      </div>
+
+      <RequestSection
+        title={activePage}
+        data={filteredData}
+        columns={generateColumns(activePage)}
+      />
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-3xl ">
+          <DialogHeader>
+            <DialogTitle>{activePage} Details</DialogTitle>
+            <DialogDescription>
+              View the details of the selected {activePage.toLowerCase()}.
+            </DialogDescription>
+          </DialogHeader>
+          {renderDialogContent()}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default TrackRequestPage;

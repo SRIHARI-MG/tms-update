@@ -29,9 +29,7 @@ function AppWithRouter() {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <AppWithRouter />
-    </BrowserRouter>
-  </React.StrictMode>
+  <BrowserRouter>
+    <AppWithRouter />
+  </BrowserRouter>
 );

@@ -187,6 +187,7 @@ export default function ProfilePage() {
   const [editedDetails, setEditedDetails] = useState<any>({});
   const [errors, setErrors] = useState<any>({});
   const [isEditingDocuments, setIsEditingDocuments] = useState<boolean>(false);
+  
 
   const [phoneNumbers, setPhoneNumbers] = useState({
     mobileNumber: {
@@ -520,20 +521,24 @@ export default function ProfilePage() {
         emergencyContactPersonName: editedDetails.emergencyContactPersonName,
         emergencyContactMobileNumber:
           editedDetails.emergencyContactMobileNumber,
-        currentAddressLine1: editedDetails.currentAddressLine1,
-        currentAddressLine2: editedDetails.currentAddressLine2,
-        currentAddressLandmark: editedDetails.currentAddressLandmark,
-        currentAddressNationality: editedDetails.currentAddressNationality,
-        currentAddressZipcode: editedDetails.currentAddressZipcode,
-        currentAddressState: editedDetails.currentAddressState,
-        currentAddressDistrict: editedDetails.currentAddressDistrict,
-        permanentAddressLine1: editedDetails.permanentAddressLine1,
-        permanentAddressLine2: editedDetails.permanentAddressLine2,
-        permanentAddressLandmark: editedDetails.permanentAddressLandmark,
-        permanentAddressNationality: editedDetails.permanentAddressNationality,
-        permanentAddressZipcode: editedDetails.permanentAddressZipcode,
-        permanentAddressState: editedDetails.permanentAddressState,
-        permanentAddressDistrict: editedDetails.permanentAddressDistrict,
+        currentAddress: {
+          addressLine1: editedDetails.currentAddressLine1,
+          addressLine2: editedDetails.currentAddressLine2,
+          landmark: editedDetails.currentAddressLandmark,
+          nationality: editedDetails.currentAddressNationality,
+          zipcode: editedDetails.currentAddressZipcode,
+          state: editedDetails.currentAddressState,
+          district: editedDetails.currentAddressDistrict,
+        },
+        permanentAddress: {
+          addressLine1: editedDetails.permanentAddressLine1,
+          addressLine2: editedDetails.permanentAddressLine2,
+          landmark: editedDetails.permanentAddressLandmark,
+          nationality: editedDetails.permanentAddressNationality,
+          zipcode: editedDetails.permanentAddressZipcode,
+          state: editedDetails.permanentAddressState,
+          district: editedDetails.permanentAddressDistrict,
+        },
       };
 
       // Always append requestedData

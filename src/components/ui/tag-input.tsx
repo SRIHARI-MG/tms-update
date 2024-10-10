@@ -2,17 +2,20 @@ import { useState, KeyboardEvent } from "react";
 import { PlusIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface TagInputProps {
   initialTags?: string[];
   maxTags?: number;
   onTagsChange?: (tags: string[]) => void;
+  className?: string;
 }
 
 export default function TagInput({
   initialTags = [],
   maxTags = Infinity,
   onTagsChange,
+  className,
 }: TagInputProps = {}) {
   const [tags, setTags] = useState<string[]>(initialTags);
   const [inputValue, setInputValue] = useState("");
@@ -45,7 +48,10 @@ export default function TagInput({
         {tags.map((tag, index) => (
           <div
             key={index}
-            className="bg-primary text-primary-foreground px-2 py-1 rounded-full text-sm"
+            className={cn(
+              "bg-primary text-primary-foreground px-2 py-1 rounded-full text-sm",
+              className
+            )}
           >
             {tag}
             <Button
@@ -60,35 +66,38 @@ export default function TagInput({
           </div>
         ))}
       </div>
-      <div className="flex items-center">
-        <Input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={
-            tags.length < maxTags ? "Add a tag..." : "Tag limit reached"
-          }
-          disabled={tags.length >= maxTags}
-          className="flex-grow"
-        />
-        <Button
-          onClick={() => addTag(inputValue)}
-          disabled={inputValue.trim() === "" || tags.length >= maxTags}
-          className="ml-2"
-        >
-          <PlusIcon className="h-4 w-4" /> Add
-        </Button>
-      </div>
-
-      {maxTags !== Infinity ? (
-        <p className="text-sm text-muted-foreground mt-2">
-          {tags.length} / {maxTags} tags used
-        </p>
-      ) : (
-        <p className="text-sm text-muted-foreground mt-2">
-          {tags.length} skills are added
-        </p>
+      {onTagsChange && (
+        <>
+          <div className="flex items-center">
+            <Input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                tags.length < maxTags ? "Add a tag..." : "Tag limit reached"
+              }
+              disabled={tags.length >= maxTags}
+              className="flex-grow"
+            />
+            <Button
+              onClick={() => addTag(inputValue)}
+              disabled={inputValue.trim() === "" || tags.length >= maxTags}
+              className="ml-2"
+            >
+              <PlusIcon className="h-4 w-4" /> Add
+            </Button>
+          </div>
+          {maxTags !== Infinity ? (
+            <p className="text-sm text-muted-foreground mt-2">
+              {tags.length} / {maxTags} tags used
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground mt-2">
+              {tags.length} skills are added
+            </p>
+          )}
+        </>
       )}
     </div>
   );

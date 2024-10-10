@@ -28,6 +28,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
+  Frown,
+  Lightbulb,
+  Database,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
@@ -38,7 +41,7 @@ interface Column<T> {
   hidden?: boolean;
   sortable?: boolean;
   filterable?: boolean;
-  width: string; // Add this line to specify column width
+  width: string;
 }
 
 interface DynamicTableProps<T> {
@@ -83,13 +86,29 @@ export default function DynamicTable<T>({
     // Apply sorting
     if (sortColumn) {
       result.sort((a, b) => {
-        const aValue = a[sortColumn] as string;
-        const bValue = b[sortColumn] as string;
-        if (aValue && bValue) {
+        const aValue = a[sortColumn];
+        const bValue = b[sortColumn];
+
+        if (aValue === bValue) return 0;
+
+        if (typeof aValue === "string" && typeof bValue === "string") {
           return sortDirection === "asc"
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
         }
+
+        if (aValue === null || aValue === undefined)
+          return sortDirection === "asc" ? -1 : 1;
+        if (bValue === null || bValue === undefined)
+          return sortDirection === "asc" ? 1 : -1;
+
+        return sortDirection === "asc"
+          ? aValue < bValue
+            ? -1
+            : 1
+          : bValue < aValue
+          ? -1
+          : 1;
       });
     }
 
@@ -117,6 +136,19 @@ export default function DynamicTable<T>({
     setCurrentPage(1); // Reset to first page when filter changes
   };
 
+  // New function to render empty state
+  const renderEmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-12 bg-gray-50 rounded-lg">
+      <Database className="w-16 h-16 text-gray-400 mb-4" />
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        No data found
+      </h3>
+      <p className="text-sm text-gray-500 mb-4">
+        Try adjusting your filters or add some data.
+      </p>
+    </div>
+  );
+
   return (
     <>
       <Table className="border rounded-t-lg">
@@ -128,7 +160,7 @@ export default function DynamicTable<T>({
                   <TableHead
                     key={index}
                     className={`font-semibold text-gray-600 border-b border-r ${column.className}`}
-                    style={{ width: column.width }} // Add this line to set the column width
+                    style={{ width: column.width }}
                   >
                     <div className="flex items-center justify-between">
                       {column.header}
@@ -153,108 +185,119 @@ export default function DynamicTable<T>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedData.map((item, rowIndex) => (
-            <Popover
-              key={rowIndex}
-              open={openPopoverId === `row-${rowIndex}`}
-              onOpenChange={(isOpen) =>
-                setOpenPopoverId(isOpen ? `row-${rowIndex}` : null)
-              }
-            >
-              <PopoverTrigger asChild>
-                <TableRow
-                  key={rowIndex}
-                  className={`hover:bg-primary/10 bg-primary/5 ${
-                    rowIndex !== paginatedData.length - 1 ? "border-b" : ""
-                  } cursor-pointer`}
-                >
-                  {columns.map(
-                    (column, colIndex) =>
-                      !column.hidden && (
-                        <TableCell
-                          key={colIndex}
-                          className={`border-r ${column.className}`}
-                          style={{ width: column.width }} // Add this line to set the cell width
-                        >
-                          {typeof column.accessor === "function"
-                            ? column.accessor(item)
-                            : (item[column.accessor] as React.ReactNode)}
-                        </TableCell>
-                      )
-                  )}
-                  {actions && (
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        {actions(item)}
-                        {expandedContent && (
-                          <Collapsible className="md:hidden w-full">
-                            <CollapsibleTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <ChevronDown className="w-4 h-4" />
-                              </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="w-full flex flex-col items-start gap-2 mt-2">
-                              {expandedContent(item)}
-                            </CollapsibleContent>
-                          </Collapsible>
-                        )}
-                      </div>
-                    </TableCell>
-                  )}
-                </TableRow>
-              </PopoverTrigger>
-              {onClickView && (
-                <PopoverContent className="w-auto p-0">
-                  {onClickView(item)}
-                </PopoverContent>
-              )}
-            </Popover>
-          ))}
+          {paginatedData.length > 0 ? (
+            paginatedData.map((item, rowIndex) => (
+              <Popover
+                key={rowIndex}
+                open={openPopoverId === `row-${rowIndex}`}
+                onOpenChange={(isOpen) =>
+                  setOpenPopoverId(isOpen ? `row-${rowIndex}` : null)
+                }
+              >
+                <PopoverTrigger asChild>
+                  <TableRow
+                    className={`hover:bg-primary/10 bg-primary/5 ${
+                      rowIndex !== paginatedData.length - 1 ? "border-b" : ""
+                    } cursor-pointer`}
+                  >
+                    {columns.map(
+                      (column, colIndex) =>
+                        !column.hidden && (
+                          <TableCell
+                            key={colIndex}
+                            className={`border-r ${column.className}`}
+                            style={{ width: column.width }}
+                          >
+                            {typeof column.accessor === "function"
+                              ? column.accessor(item)
+                              : (item[column.accessor] as React.ReactNode)}
+                          </TableCell>
+                        )
+                    )}
+                    {actions && (
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          {actions(item)}
+                          {expandedContent && (
+                            <Collapsible className="md:hidden w-full">
+                              <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <ChevronDown className="w-4 h-4" />
+                                </Button>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent className="w-full flex flex-col items-start gap-2 mt-2">
+                                {expandedContent(item)}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                </PopoverTrigger>
+                {onClickView && (
+                  <PopoverContent className="w-auto p-0">
+                    {onClickView(item)}
+                  </PopoverContent>
+                )}
+              </Popover>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length + (actions ? 1 : 0)}>
+                {renderEmptyState()}
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
-      <div className="flex items-center justify-between px-4 py-2 bg-white border-t border-gray-200 sm:px-6">
-        <div className="flex items-center">
-          <p className="text-sm text-gray-700">
-            Showing{" "}
-            <span className="font-medium">
-              {(currentPage - 1) * itemsPerPage + 1}
-            </span>{" "}
-            to{" "}
-            <span className="font-medium">
-              {Math.min(
-                currentPage * itemsPerPage,
-                filteredAndSortedData.length
-              )}
-            </span>{" "}
-            of{" "}
-            <span className="font-medium">{filteredAndSortedData.length}</span>{" "}
-            results
-          </p>
+      {paginatedData.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-2 bg-white border-t border-gray-200 sm:px-6">
+          <div className="flex items-center">
+            <p className="text-sm text-gray-700">
+              Showing{" "}
+              <span className="font-medium">
+                {(currentPage - 1) * itemsPerPage + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium">
+                {Math.min(
+                  currentPage * itemsPerPage,
+                  filteredAndSortedData.length
+                )}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium">
+                {filteredAndSortedData.length}
+              </span>{" "}
+              results
+            </p>
+          </div>
+          <div className="flex justify-between sm:justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="mr-2"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex justify-between sm:justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="mr-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-          >
-            Next
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
+      )}
     </>
   );
 }

@@ -20,6 +20,7 @@ import WorkspaceMyProjects from "@/pages/private/Employee_Components/Workspace/W
 import TimesheetCalender from "@/pages/private/Employee_Components/Timesheet/TimesheetCalender";
 import TimesheetTaskDetails from "@/pages/private/Employee_Components/Timesheet/TimesheetTaskDetails";
 import TimesheetAssignedTask from "@/pages/private/Employee_Components/Timesheet/TimesheetAssignedTask";
+import TrackRequestPage from "./pages/private/Track Request/TrackRequestPage";
 
 function App() {
   const userRole = localStorage.getItem("role");
@@ -58,6 +59,14 @@ function App() {
             element={
               <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
                 <ProfilePage />
+              </AuthMiddleware>
+            }
+          />
+          <Route
+            path="track-request"
+            element={
+              <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
+                <TrackRequestPage />
               </AuthMiddleware>
             }
           />

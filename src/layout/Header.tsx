@@ -186,7 +186,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         permanentAddressZipcode: userData?.permanentAddress?.zipcode,
         permanentAddressState: userData?.permanentAddress?.state,
         permanentAddressDistrict: userData?.permanentAddress?.district,
-        // Map other fields as needed
       };
 
       setUserDetails(mappedData);
@@ -264,6 +263,7 @@ export default function Header() {
       ],
       ROLE_EMPLOYEE: [
         { label: "Dashboard", path: "/employee/dashboard" },
+
         {
           label: "Workspace",
           path: "/employee/workspace",
@@ -319,6 +319,24 @@ export default function Header() {
     return result;
   };
 
+  const trackRequestRenderNavigation = (): string => {
+    let result = "";
+    if (userRole === "ROLE_HR") {
+      result = "/hr/track-request";
+    } else if (userRole === "ROLE_MANAGER") {
+      result = "/manager/track-request";
+    } else if (userRole === "ROLE_VIEWER") {
+      result = "/viewer/track-request";
+    } else if (userRole === "ROLE_EMPLOYEE") {
+      result = "/employee/track-request";
+    } else if (userRole === "SUPER_ADMIN") {
+      result = "/superadmin/track-request";
+    } else if (userRole === "ROLE_RECRUITER") {
+      result = "/recruiter/track-request";
+    }
+    return result;
+  };
+
   const renderNavItems = (items: NavItem[]) => {
     return items.map((item, index) => (
       <div key={index} className="relative group">
@@ -335,7 +353,7 @@ export default function Header() {
             <DropdownMenuContent className="w-52">
               {item.children.map((child, childIndex) => (
                 <>
-                  <DropdownMenuItem key={childIndex} >
+                  <DropdownMenuItem key={childIndex}>
                     <Button
                       size="sm"
                       variant="outline"
@@ -449,6 +467,7 @@ export default function Header() {
                   <p className="font-medium">{`${userDetails?.firstName} ${userDetails?.lastName}`}</p>
                   <p className="text-muted-foreground">{userDetails?.role}</p>
                 </div>
+                <ChevronDown className="h-4 w-4 opacity-80" />
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -460,7 +479,11 @@ export default function Header() {
                 <User2 className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setIsOpen(false)}>
+              <DropdownMenuItem
+                onSelect={() =>
+                  handleMenuItemClick(trackRequestRenderNavigation())
+                }
+              >
                 <Bell className="mr-2 h-4 w-4" />
                 Track Request
               </DropdownMenuItem>
