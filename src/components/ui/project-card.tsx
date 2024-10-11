@@ -104,6 +104,7 @@ export default function ProjectCard({
             <div className="flex items-center gap-3">
               <Avatar className="h-8 w-8">
                 <AvatarImage
+                  loading="lazy"
                   className="object-cover"
                   src={projectOwnerProfile}
                   alt={projectOwner}
@@ -118,6 +119,7 @@ export default function ProjectCard({
             <div className="flex items-center gap-3">
               <Avatar className="h-8 w-8">
                 <AvatarImage
+                  loading="lazy"
                   className="object-cover"
                   src={projectManagerProfile}
                   alt={projectManager}

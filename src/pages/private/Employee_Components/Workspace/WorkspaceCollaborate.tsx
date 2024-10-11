@@ -159,6 +159,7 @@ const WorkspaceCollaborate = () => {
               src={mailLogo}
               alt="Email Logo"
               className="w-5 h-5 text-gray-600 hover:text-primary"
+              loading="lazy"
             />
           </a>
           <a
@@ -170,6 +171,7 @@ const WorkspaceCollaborate = () => {
             <img
               src={teamsLogo}
               className="w-5 h-5 text-gray-600 hover:text-primary"
+              loading="lazy"
             />
           </a>
           <a
@@ -181,6 +183,7 @@ const WorkspaceCollaborate = () => {
             <img
               src={whatsappLogo}
               className="w-5 h-5 text-gray-600 hover:text-primary"
+              loading="lazy"
             />
           </a>
         </div>

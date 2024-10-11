@@ -124,6 +124,7 @@ const TrackRequestPage = () => {
       accessor: (data: any) => (
         <Avatar className="h-12 w-12">
           <AvatarImage
+            loading="lazy"
             className="object-cover"
             src={
               data.requestedData.profileUrl ||
@@ -280,7 +281,7 @@ const TrackRequestPage = () => {
                 hasChanged && value !== null ? "border-2 border-red-500" : ""
               }`}
             >
-              <AvatarImage className="object-cover" src={value as string} />
+              <AvatarImage loading="lazy" className="object-cover" src={value as string} />
               <AvatarFallback>
                 {label.substring(0, 2).toUpperCase()}
               </AvatarFallback>
@@ -383,6 +384,7 @@ const TrackRequestPage = () => {
               } w-24 h-24`}
             >
               <AvatarImage
+              loading="lazy"
                 className="object-cover"
                 src={formData.profileUrl || undefined}
               />

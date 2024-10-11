@@ -489,6 +489,7 @@ export default function Header() {
               src={companyLogo}
               alt="Mindgraph"
               className="h-8 w-22 md:h-14 md:w-26"
+              loading="lazy"
             />
           </Link>
         </div>
@@ -500,6 +501,7 @@ export default function Header() {
               <div className="flex items-center space-x-2">
                 <Avatar className="h-8 w-8 md:h-10 md:w-10">
                   <AvatarImage
+                    loading="lazy"
                     className="object-cover"
                     src={userDetails?.profileUrl}
                   />

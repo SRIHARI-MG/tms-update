@@ -610,6 +610,7 @@ export default function ProfilePage() {
                       src={userDetails?.profileUrl}
                       alt={userDetails?.firstName}
                       className="object-cover"
+                      loading="lazy"
                     />
                     <AvatarFallback>
                       {userDetails?.firstName.slice(0, 2).toUpperCase()}

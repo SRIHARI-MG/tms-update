@@ -26,7 +26,12 @@ type AuthLayoutProps = {
 
 // Memoized company logo component
 const CompanyLogo = React.memo(({ className }: { className?: string }) => (
-  <img src={companyLogo} alt="Company Logo" className={className} />
+  <img
+    src={companyLogo}
+    alt="Company Logo"
+    className={className}
+    loading="lazy"
+  />
 ));
 
 // Memoized interactive cloud component

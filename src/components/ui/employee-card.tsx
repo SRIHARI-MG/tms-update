@@ -41,6 +41,7 @@ export default function EmployeeCard(
       <CardHeader className="flex flex-col sm:flex-row items-center gap-4">
         <Avatar className="h-20 w-20">
           <AvatarImage
+            loading="lazy"
             className="object-cover"
             alt={`${firstName} ${lastName}`}
             src={avatar}
