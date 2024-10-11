@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Search,
   Bell,
@@ -8,6 +8,8 @@ import {
   User,
   User2,
   ChevronDown,
+  ChevronRight,
+  ChevronUp,
 } from "lucide-react";
 import companyLogo from "@/assets/CompanyLogo.png";
 import {
@@ -26,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { handleLogout } from "@/utils/authHandler";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   label: string;
@@ -233,6 +236,7 @@ export default function Header() {
 
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const showToast = React.useCallback(
     (message: string) => {
       toast({
@@ -352,8 +356,8 @@ export default function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-52">
               {item.children.map((child, childIndex) => (
-                <>
-                  <DropdownMenuItem key={childIndex}>
+                <React.Fragment key={childIndex}>
+                  <DropdownMenuItem>
                     <Button
                       size="sm"
                       variant="outline"
@@ -367,7 +371,7 @@ export default function Header() {
                     </Button>
                   </DropdownMenuItem>
                   <Separator />
-                </>
+                </React.Fragment>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -384,6 +388,92 @@ export default function Header() {
       </div>
     ));
   };
+  const SheetNavigation = ({
+    navItems,
+    setSheetOpen,
+    navigate,
+  }: {
+    navItems: NavItem[];
+    setSheetOpen: (open: boolean) => void;
+    navigate: (path: string) => void;
+  }) => {
+    const location = useLocation();
+    const [openItems, setOpenItems] = useState<string[]>([]);
+
+    const isActiveRoute = (path: string) => {
+      return location.pathname.startsWith(path);
+    };
+
+    const toggleItem = (label: string) => {
+      setOpenItems((prev) =>
+        prev.includes(label)
+          ? prev.filter((item) => item !== label)
+          : [...prev, label]
+      );
+    };
+
+    const renderNavItem = (item: NavItem) => (
+      <div key={item.label} className="w-full">
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-between px-3 py-2 text-md font-semibold rounded-md transition-colors",
+            isActiveRoute(item.path)
+              ? "bg-primary text-primary-foreground"
+              : "text-foreground hover:bg-muted"
+          )}
+          onClick={() => {
+            if (item.children) {
+              toggleItem(item.label);
+            } else {
+              navigate(item.path);
+              setSheetOpen(false);
+            }
+          }}
+        >
+          {item.label}
+          {item.children &&
+            (openItems.includes(item.label) ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            ))}
+        </Button>
+
+        {item.children && openItems.includes(item.label) && (
+          <div className="relative ml-4 mt-1">
+            <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-b-2 border-muted rounded-bl-lg"></div>
+            <div className="pl-2 pt-2 border-l-2 border-muted">
+              {item.children.map((child) => (
+                <Button
+                  key={child.label}
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start px-4 py-2 text-sm rounded-md transition-colors",
+                    isActiveRoute(child.path)
+                      ? "bg-primary/90 text-primary-foreground font-medium"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                  onClick={() => {
+                    navigate(child.path);
+                    setSheetOpen(false);
+                  }}
+                >
+                  {child.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+
+    return (
+      <div className="flex flex-col space-y-1 mt-6">
+        {navItems.map(renderNavItem)}
+      </div>
+    );
+  };
 
   const handleMenuItemClick = (path: string) => {
     setIsOpen(false); // Close the dropdown
@@ -394,44 +484,16 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 bg-background z-10 border-b-2">
       <div className="flex h-20 md:h-20 items-center justify-between px-4 md:px-10">
         <div className="flex items-center ">
-          <Sheet>
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger className="mr-2 md:hidden">
               <Menu className="h-6 w-6" />
             </SheetTrigger>
-            <SheetContent side="left" className="w-64">
-              <div className="flex flex-col space-y-4 mt-6">
-                {navItems.map((item, index) => (
-                  <div key={index}>
-                    {item.children ? (
-                      <>
-                        <div className="px-3 py-2 text-md font-semibold text-primary">
-                          {item.label}
-                        </div>
-                        {item.children.map((child, childIndex) => (
-                          <div className="flex flex-col gap-5">
-                            <Link
-                              key={childIndex}
-                              to={child.path}
-                              onClick={() => setIsOpen(false)}
-                              className="px-6 py-2 text-md text-primary hover:bg-primary/10 rounded-sm"
-                            >
-                              {child.label}
-                            </Link>
-                          </div>
-                        ))}
-                      </>
-                    ) : (
-                      <Link
-                        to={item.path}
-                        onClick={() => setIsOpen(false)}
-                        className="px-3 py-2 text-md font-semibold text-primary hover:bg-primary/10 rounded-sm"
-                      >
-                        {item.label}
-                      </Link>
-                    )}
-                  </div>
-                ))}
-              </div>
+            <SheetContent side="left" className="w-72">
+              <SheetNavigation
+                navItems={navItems}
+                setSheetOpen={setSheetOpen}
+                navigate={navigate}
+              />
             </SheetContent>
           </Sheet>
           <Link to="/" className="flex items-center space-x-2">
@@ -445,12 +507,6 @@ export default function Header() {
 
         <div className="flex items-center space-x-2 md:space-x-4">
           <ThemeToggle />
-          {/* <button className="relative">
-            <Bell className="h-5 w-5 md:h-6 md:w-6" />
-            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
-              3
-            </span>
-          </button> */}
           <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             <DropdownMenuTrigger className="focus:outline-none">
               <div className="flex items-center space-x-2">

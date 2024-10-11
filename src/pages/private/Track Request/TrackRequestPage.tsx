@@ -164,7 +164,10 @@ const TrackRequestPage = () => {
     {
       header: "View All Updates",
       accessor: (data: any) => (
-        <Button className="w-full" onClick={() => setSelectedData(data)}>
+        <Button
+          className="md:w-full w-fit"
+          onClick={() => setSelectedData(data)}
+        >
           View Updates
         </Button>
       ),
@@ -201,7 +204,10 @@ const TrackRequestPage = () => {
       {
         header: "View All Updates",
         accessor: (data: any) => (
-          <Button className="w-full" onClick={() => setSelectedData(data)}>
+          <Button
+            className="md:w-full w-fit"
+            onClick={() => setSelectedData(data)}
+          >
             View Updates
           </Button>
         ),
@@ -304,7 +310,7 @@ const TrackRequestPage = () => {
                 : (value as string) || ""
             }
             readOnly
-            className={`bg-gray-100 focus-visible:ring-0 focus-visible:ring-offset-0 ${
+            className={`bg-background/80 focus-visible:ring-0 focus-visible:ring-offset-0 ${
               hasChanged && value !== null ? "border-2 border-red-500" : ""
             }`}
           />
@@ -653,20 +659,44 @@ const TrackRequestPage = () => {
     }
   };
 
+  const handlePageChange = (title: string) => {
+    const selectedSection = requestSections.find(
+      (section) => section.title === title
+    );
+    if (selectedSection) {
+      setActivePage(selectedSection.title);
+      setActiveApiUrl(selectedSection.apiUrl);
+    }
+  };
+
   return (
-    <div className="">
+    <div className="pb-5">
       <h1 className="text-2xl font-semibold mb-4">Track Requests</h1>
-      <div className="flex justify-between w-full mb-4">
-        <nav className="w-1/2">
-          <ul className="flex  justify-between items-center border-b border-gray-200">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+        {/* Mobile Dropdown Navigation */}
+        <div className="w-full sm:hidden">
+          <Select onValueChange={handlePageChange} value={activePage}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select Request Type" />
+            </SelectTrigger>
+            <SelectContent>
+              {requestSections.map((section) => (
+                <SelectItem key={section.title} value={section.title}>
+                  {section.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden sm:block">
+          <ul className="flex items-center border-b border-gray-200">
             {requestSections.map((page) => (
-              <li key={page.title} className="flex-1">
+              <li key={page.title}>
                 <button
-                  onClick={() => {
-                    setActiveApiUrl(page.apiUrl);
-                    setActivePage(page.title);
-                  }}
-                  className={`w-full py-2 px-1 text-center text-md font-medium text-gray-500 hover:text-gray-700 focus:outline-none
+                  onClick={() => handlePageChange(page.title)}
+                  className={`py-2 px-4 text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none
                     ${
                       activePage === page.title &&
                       `text-primary border-b-2 border-primary`
@@ -678,12 +708,14 @@ const TrackRequestPage = () => {
             ))}
           </ul>
         </nav>
-        <div className="flex gap-2">
+
+        {/* Status Filter */}
+        <div className="flex items-center space-x-2">
           <Select
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value)}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[140px] sm:w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -694,7 +726,7 @@ const TrackRequestPage = () => {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="default" onClick={handleClearFilter}>
+          <Button variant="default" size="sm" onClick={handleClearFilter}>
             Clear Filter
           </Button>
         </div>
@@ -705,8 +737,9 @@ const TrackRequestPage = () => {
         data={filteredData}
         columns={generateColumns(activePage)}
       />
+
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-3xl ">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>{activePage} Details</DialogTitle>
             <DialogDescription>

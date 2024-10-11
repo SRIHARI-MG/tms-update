@@ -187,7 +187,6 @@ export default function ProfilePage() {
   const [editedDetails, setEditedDetails] = useState<any>({});
   const [errors, setErrors] = useState<any>({});
   const [isEditingDocuments, setIsEditingDocuments] = useState<boolean>(false);
-  
 
   const [phoneNumbers, setPhoneNumbers] = useState({
     mobileNumber: {
@@ -604,7 +603,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 pb-5 px-4">
-      <CardTitle>Profile</CardTitle>
+      <h1 className="text-2xl font-semibold">Profile</h1>
       <div className="flex flex-col md:flex-row gap-6 md:gap-10 mt-6">
         <Card className="w-full h-fit md:w-3/12 border-none rounded-lg shadow-md">
           <CardHeader
@@ -690,10 +689,10 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
         <Card className="w-full md:w-3/4 shadow-md border-none relative">
-          <div className="flex p-5 justify-between ">
+          <div className="flex p-5 gap-2 justify-between ">
             <CardTitle>{selectedNav}</CardTitle>
             {selectedNav === "Profile Details" && (
-              <div className="space-x-2">
+              <div className="space-x-2 space-y-2">
                 <Button
                   onClick={toggleEdit}
                   size="sm"

@@ -53,66 +53,83 @@ export default function ProjectCard({
   };
 
   return (
-    <Card className="w-full bg-background border-none max-w-2xl">
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-          <CardTitle>{projectName}</CardTitle>
-          <p className="text-sm text-muted-foreground">{projectCode}</p>
+    <Card className="w-full max-w-md bg-background border-none overflow-hidden">
+      <CardHeader className="p-6 pb-3">
+        <div className="flex justify-between gap-3 items-start">
+          <div>
+            <CardTitle className="text-lg font-semibold">
+              {projectName}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">{projectCode}</p>
+          </div>
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+              projectStatus
+            )}`}
+          >
+            {projectStatus}
+          </span>
         </div>
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-            projectStatus
-          )}`}
-        >
-          {projectStatus}
-        </span>
       </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid grid-cols-[20px_1fr] items-start gap-2">
-          <FileText className="h-5 w-5 " />
-          <p className="text-sm">{projectDescription}</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid grid-cols-[20px_1fr] items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            <span className="text-sm">Start: {startDate}</span>
+      <CardContent className="p-6 pt-3 max-h-[70vh] overflow-y-auto">
+        <div className="space-y-5">
+          <div className="flex gap-3 items-start">
+            <FileText className="h-5 w-5 mt-1 flex-shrink-0" />
+            <p className="text-sm">{projectDescription}</p>
           </div>
-          <div className="grid grid-cols-[20px_1fr] items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            <span className="text-sm">End: {estimatedEndDate}</span>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid grid-cols-[20px_1fr] items-center gap-2">
-            <Code className="h-5 w-5" />
-            <span className="text-sm">{projectType}</span>
-          </div>
-          <div className="grid grid-cols-[20px_1fr] items-center gap-2">
-            <PercentSquare className="h-5 w-5" />
-            <span className="text-sm">
-              Utilization: {utilizationPercentage}%
-            </span>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={projectOwnerProfile} alt={projectOwner} />
-              <AvatarFallback>{projectOwner[0]}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium">Project Owner</p>
-              <p className="text-xs text-muted-foreground">{projectOwner}</p>
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              <span>Start: {startDate}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              <span>End: {estimatedEndDate}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={projectManagerProfile} alt={projectManager} />
-              <AvatarFallback>{projectManager[0]}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium">Project Manager</p>
-              <p className="text-xs text-muted-foreground">{projectManager}</p>
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <Code className="h-5 w-5" />
+              <span>{projectType}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <PercentSquare className="h-5 w-5" />
+              <span>{utilizationPercentage}% Utilized</span>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-8 w-8">
+                <AvatarImage
+                  className="object-cover"
+                  src={projectOwnerProfile}
+                  alt={projectOwner}
+                />
+                <AvatarFallback>{projectOwner[0]}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium">Project Owner</p>
+                <p className="text-sm text-muted-foreground">{projectOwner}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Avatar className="h-8 w-8">
+                <AvatarImage
+                  className="object-cover"
+                  src={projectManagerProfile}
+                  alt={projectManager}
+                />
+                <AvatarFallback>{projectManager[0]}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium">Project Manager</p>
+                <p className="text-sm text-muted-foreground">
+                  {projectManager}
+                </p>
+              </div>
             </div>
           </div>
         </div>

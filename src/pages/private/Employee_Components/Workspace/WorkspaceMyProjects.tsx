@@ -163,15 +163,17 @@ const WorkspaceMyProjects = () => {
   }
 
   return (
-    <div className="mx-auto">
-      <h1 className="text-2xl font-bold mb-5">My Projects</h1>
-      <div className="flex space-x-4 w-1/3 mb-4">
-        <Button onClick={clearFilter}>Clear All Filters</Button>
+    <div className="">
+      <h1 className="text-2xl font-semibold mb-5">My Projects</h1>
+      <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 mb-4">
+        <Button onClick={clearFilter} className="w-fit sm:w-auto">
+          Clear All Filters
+        </Button>
         <Select
           onValueChange={(value) => handleFilterChange("projectType", value)}
           value={filters.projectType}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Filter by Project Type" />
           </SelectTrigger>
           <SelectContent>
@@ -187,7 +189,7 @@ const WorkspaceMyProjects = () => {
           onValueChange={(value) => handleFilterChange("projectStatus", value)}
           value={filters.projectStatus}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Filter by Project Status" />
           </SelectTrigger>
           <SelectContent>
@@ -201,27 +203,29 @@ const WorkspaceMyProjects = () => {
         </Select>
       </div>
 
-      <DynamicTable
-        data={filteredProjects}
-        columns={columns}
-        itemsPerPage={10}
-        onClickView={(project) => (
-          <ProjectCard
-            projectCode={project.projectCode}
-            projectName={project.projectName}
-            projectDescription={project.projectDescription}
-            startDate={project.startDate}
-            estimatedEndDate={project.estimatedEndDate}
-            projectType={project.projectType}
-            utilizationPercentage={project.utilizationPercentage}
-            projectStatus={project.projectStatus}
-            projectOwner={project.projectOwner}
-            projectOwnerProfile={project.projectOwnerProfile}
-            projectManager={project.projectManager}
-            projectManagerProfile={project.projectManagerProfile}
-          />
-        )}
-      />
+      <div className="overflow-x-auto">
+        <DynamicTable
+          data={filteredProjects}
+          columns={columns}
+          itemsPerPage={10}
+          onClickView={(project) => (
+            <ProjectCard
+              projectCode={project.projectCode}
+              projectName={project.projectName}
+              projectDescription={project.projectDescription}
+              startDate={project.startDate}
+              estimatedEndDate={project.estimatedEndDate}
+              projectType={project.projectType}
+              utilizationPercentage={project.utilizationPercentage}
+              projectStatus={project.projectStatus}
+              projectOwner={project.projectOwner}
+              projectOwnerProfile={project.projectOwnerProfile}
+              projectManager={project.projectManager}
+              projectManagerProfile={project.projectManagerProfile}
+            />
+          )}
+        />
+      </div>
     </div>
   );
 };

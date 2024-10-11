@@ -252,7 +252,7 @@ export default function DynamicTable<T>({
         </TableBody>
       </Table>
       {paginatedData.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-2 bg-white border-t border-gray-200 sm:px-6">
+        <div className="flex items-center justify-between px-4 py-2 bg-background border-t  sm:px-6">
           <div className="flex items-center">
             <p className="text-sm text-gray-700">
               Showing{" "}

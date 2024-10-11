@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EmployeeCard from "@/components/ui/employee-card";
 import { Search } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 
 interface Employee {
   profileUrl: string;
@@ -203,16 +204,19 @@ const WorkspaceCollaborate = () => {
   }
 
   return (
-    <div className="mx-auto">
-      <h1 className="text-2xl font-bold mb-5">Employee Collaboration</h1>
-      <div className="flex space-x-4 w-full mb-4 ">
-        <div className="flex w-3/4 space-x-4">
-          <Button onClick={clearFilter}>Clear All Filters</Button>
+    <div className="pb-5">
+      <h1 className="text-2xl font-semibold mb-5">Employee Collaboration</h1>
+      <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 mb-4">
+        <Button onClick={clearFilter} className="w-fit">
+          Clear All Filters
+        </Button>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <Select
             onValueChange={(value) => handleFilterChange("role", value)}
             value={filters.role}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Filter by Role" />
             </SelectTrigger>
             <SelectContent>
@@ -224,11 +228,12 @@ const WorkspaceCollaborate = () => {
               ))}
             </SelectContent>
           </Select>
+
           <Select
             onValueChange={(value) => handleFilterChange("designation", value)}
             value={filters.designation}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Filter by Designation" />
             </SelectTrigger>
             <SelectContent>
@@ -240,11 +245,12 @@ const WorkspaceCollaborate = () => {
               ))}
             </SelectContent>
           </Select>
+
           <Select
             onValueChange={(value) => handleFilterChange("skill", value)}
             value={filters.skill}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Filter by Skill" />
             </SelectTrigger>
             <SelectContent>
@@ -256,11 +262,12 @@ const WorkspaceCollaborate = () => {
               ))}
             </SelectContent>
           </Select>
+
           <Select
             onValueChange={(value) => handleFilterChange("branch", value)}
             value={filters.branch}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Filter by Branch" />
             </SelectTrigger>
             <SelectContent>
@@ -272,11 +279,12 @@ const WorkspaceCollaborate = () => {
               ))}
             </SelectContent>
           </Select>
+
           <Select
             onValueChange={(value) => handleFilterChange("project", value)}
             value={filters.project}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Filter by Project" />
             </SelectTrigger>
             <SelectContent>
@@ -289,40 +297,38 @@ const WorkspaceCollaborate = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="md:flex-grow">
-          <div className="relative">
-            <Input
-              type="text"
-              placeholder="Search by name or ID"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="pl-10"
-            />
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-          </div>
+
+        <div className="relative w-full sm:w-auto">
+        <SearchInput
+          type="text"
+          placeholder="Search by name or ID"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className=" w-full"
+        />
+
         </div>
       </div>
 
-      <DynamicTable
-        data={filteredEmployees}
-        columns={columns}
-        itemsPerPage={10}
-        onClickView={(employee) => (
-          <EmployeeCard
-            avatar={employee.profileUrl}
-            employeeId={employee.userId}
-            firstName={employee.firstName}
-            lastName={employee.lastName}
-            email={employee.email}
-            role={employee.role}
-            designation={employee.designation}
-            branch={employee.branch}
-          />
-        )}
-      />
+      <div className="overflow-x-auto">
+        <DynamicTable
+          data={filteredEmployees}
+          columns={columns}
+          itemsPerPage={10}
+          onClickView={(employee) => (
+            <EmployeeCard
+              avatar={employee.profileUrl}
+              employeeId={employee.userId}
+              firstName={employee.firstName}
+              lastName={employee.lastName}
+              email={employee.email}
+              role={employee.role}
+              designation={employee.designation}
+              branch={employee.branch}
+            />
+          )}
+        />
+      </div>
     </div>
   );
 };
