@@ -11,6 +11,7 @@ import api from "@/api/apiService";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/layout/Header";
 import ProjectCard from "@/components/ui/project-card";
+import Loading from "@/components/ui/loading";
 
 interface Project {
   projectId: string;
@@ -148,18 +149,7 @@ const WorkspaceMyProjects = () => {
   ];
 
   if (isFetchingData) {
-    return (
-      <div className="flex h-full justify-center items-center space-x-4">
-        {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-primary/20"
-          >
-            <div className="w-full h-full rounded-full bg-primary animate-ping" />
-          </div>
-        ))}
-      </div>
-    );
+    return <Loading />;
   }
 
   return (

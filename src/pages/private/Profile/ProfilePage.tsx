@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import {
   Briefcase,
   FileText,
@@ -19,8 +18,7 @@ import {
   ChevronDown,
   User2,
 } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
-import moment from "moment";
+import { useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -40,16 +38,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import api from "@/api/apiService";
-import BankDetailsSection from "./BankDetailsSection";
-import ChangePasswordSection from "./ChangePasswordSection";
-import PhoneInput from "@/components/ui/phone-input";
-import DocumentsSection from "./DocumentsSection";
-import CertificatesSection from "./CertificatesSection";
 import React from "react";
 import { useToast } from "@/hooks/use-toast";
 import { handleLogout } from "@/utils/authHandler";
 import PageIndicator from "@/components/ui/page-indicator";
 import { useUser, useUserActions } from "@/layout/Header";
+
+const BankDetailsSection = lazy(() => import("./BankDetailsSection"));
+const ChangePasswordSection = lazy(() => import("./ChangePasswordSection"));
+const PhoneInput = lazy(() => import("@/components/ui/phone-input"));
+const DocumentsSection = lazy(() => import("./DocumentsSection"));
+const CertificatesSection = lazy(() => import("./CertificatesSection"));
 
 interface UserDetails {
   profileUrl?: string;
@@ -114,18 +113,6 @@ interface Documents {
   aadhar: AadharDetails;
   pan: DocumentDetails;
   passport: DocumentDetails;
-}
-
-interface UserContextType {
-  userDetails: UserDetails | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
-interface UserActionsContextType {
-  updateUserDetails: (newDetails: Partial<UserDetails>) => void;
-  resetUserDetails: () => void;
-  fetchUserDetails: () => Promise<void>;
 }
 
 const formSections = [
@@ -865,17 +852,19 @@ export default function ProfilePage() {
                                 ) : key === "mobileNumber" ||
                                   key === "alternateMobileNumber" ||
                                   key === "emergencyContactMobileNumber" ? (
-                                  <PhoneInput
-                                    value={phoneNumbers[key]}
-                                    onChange={(value: any) =>
-                                      handlePhoneChange(key, value)
-                                    }
-                                    readOnly={!isEditing}
-                                    countryCodes={countryCodes}
-                                    required={
-                                      section.title !== "Professional Details"
-                                    }
-                                  />
+                                  <Suspense fallback={<div></div>}>
+                                    <PhoneInput
+                                      value={phoneNumbers[key]}
+                                      onChange={(value: any) =>
+                                        handlePhoneChange(key, value)
+                                      }
+                                      readOnly={!isEditing}
+                                      countryCodes={countryCodes}
+                                      required={
+                                        section.title !== "Professional Details"
+                                      }
+                                    />
+                                  </Suspense>
                                 ) : key === "skills" ? (
                                   !isEditing ? (
                                     <div className="flex flex-wrap gap-2">
@@ -937,19 +926,35 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
-            {selectedNav === "Bank Details" && <BankDetailsSection />}
-            {selectedNav === "Documents" && (
-              <DocumentsSection
-                isEditing={isEditingDocuments}
-                onEdit={handleEditDocuments}
-                onSave={() => {
-                  handleSaveDocuments;
-                }}
-                onCancel={handleCancelDocuments}
-              />
+            {selectedNav === "Bank Details" && (
+              <Suspense fallback={<div></div>}>
+                <BankDetailsSection />
+              </Suspense>
             )}
-            {selectedNav === "Certifications" && <CertificatesSection />}
-            {selectedNav === "Change Password" && <ChangePasswordSection />}
+            {selectedNav === "Documents" && (
+              <Suspense fallback={<div></div>}>
+                <DocumentsSection
+                  isEditing={isEditingDocuments}
+                  onEdit={handleEditDocuments}
+                  onSave={() => {
+                    handleSaveDocuments;
+                  }}
+                  onCancel={handleCancelDocuments}
+                />
+              </Suspense>
+            )}
+            {selectedNav === "Certifications" && (
+              <Suspense fallback={<div></div>}>
+                {" "}
+                <CertificatesSection />
+              </Suspense>
+            )}
+            {selectedNav === "Change Password" && (
+              <Suspense fallback={<div></div>}>
+                {" "}
+                <ChangePasswordSection />
+              </Suspense>
+            )}
           </CardContent>
         </Card>
         <AlertDialog

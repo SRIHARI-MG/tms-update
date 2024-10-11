@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/layout/Header";
-
+import Loading from "@/components/ui/loading";
 
 export default function BankDetailsSection() {
   const { userDetails } = useUser();
@@ -187,18 +187,7 @@ export default function BankDetailsSection() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-80">
-        {[...Array(3)].map((_, i) => (
-          <Skeleton
-            key={i}
-            className="w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-primary/20"
-          >
-            <div className="w-full h-full rounded-full bg-primary animate-ping" />
-          </Skeleton>
-        ))}
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error) {

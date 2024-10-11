@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import EmployeeCard from "@/components/ui/employee-card";
 import { Search } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
+import Loading from "@/components/ui/loading";
 
 interface Employee {
   profileUrl: string;
@@ -189,18 +190,7 @@ const WorkspaceCollaborate = () => {
   ];
 
   if (isfetchingData) {
-    return (
-      <div className="flex h-full justify-center items-center space-x-4">
-        {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-primary/20"
-          >
-            <div className="w-full h-full rounded-full bg-primary animate-ping" />
-          </div>
-        ))}
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
@@ -299,14 +289,13 @@ const WorkspaceCollaborate = () => {
         </div>
 
         <div className="relative w-full sm:w-auto">
-        <SearchInput
-          type="text"
-          placeholder="Search by name or ID"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className=" w-full"
-        />
-
+          <SearchInput
+            type="text"
+            placeholder="Search by name or ID"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className=" w-full"
+          />
         </div>
       </div>
 
