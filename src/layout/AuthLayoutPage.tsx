@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import companyLogo from "@/assets/CompanyLogo.png";
 import LP1 from "@/assets/lp1.svg";
 import LP2 from "@/assets/lp2.svg";
@@ -12,6 +12,7 @@ import LP9 from "@/assets/lp9.svg";
 import LP10 from "@/assets/lp10.svg";
 import InteractiveIconCloud from "@/components/ui/orbiting-images";
 import { Toaster } from "@/components/ui/toaster";
+import MindgraphNetwork from "@/components/ui/mindgraph-network-animation";
 
 type AuthLayoutProps = {
   title: string;
@@ -26,9 +27,9 @@ export default function AuthLayout({
 }: AuthLayoutProps) {
   return (
     <>
-      <div className="!auth-layout flex min-h-screen">
+      <div className="!auth-layout flex min-h-screen z-10 !overflow-hidden">
         {/* Left side - Gradient background */}
-        <div className="hidden w-1/2 lg:block bg-gradient-to-br from-primary to-primary p-12">
+        <div className="hidden w-1/2 lg:block bg-gradient-to-br from-primary to-primary p-12 z-20">
           <div className="h-full flex flex-col justify-between">
             <img src={companyLogo} alt="Company Logo" className="w-1/3" />
 
@@ -81,11 +82,19 @@ export default function AuthLayout({
         </div>
 
         {/* Right side - Form */}
-        <div className="w-full lg:w-1/2 flex flex-col gap-5 items-center justify-center p-8 bg-background">
-          <div className="max-w-md lg:hidden">
+        <div className=" w-full lg:w-1/2 flex flex-col gap-5 items-center justify-center p-8 bg-background">
+          <div className="max-w-md z-20 lg:hidden">
             <img src={companyLogo} alt="Company Logo" className="w-full" />
           </div>
-          {children}
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <div className="absolute -inset-3/4 lg:-top-1/4 -top-full -left-1/2 lg:-left-1/4 rotate-45">
+              <MindgraphNetwork width={2000} height={1300} />
+            </div>
+            <div className="hidden lg:block absolute -inset-1/4 lg:-top-full -right-full rotate-45">
+              <MindgraphNetwork width={1200} height={800} />
+            </div>
+          </div>
+          <div className="z-20">{children}</div>
         </div>
         <Toaster />
       </div>

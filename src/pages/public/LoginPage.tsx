@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { defaultRedirectPerRole, Roles } from "@/utils/roleConfig";
 import LoadingButton from "@/components/ui/loading-button";
+import MindgraphNetwork from "@/components/ui/mindgraph-network-animation";
 
 const formSchema = z.object({
   email: z
@@ -114,7 +115,8 @@ export default function LoginPage() {
       title="Welcome Back"
       description="Login to access your account and manage your services."
     >
-      <Card className="w-full max-w-md border-none shadow-lg">
+      
+      <Card className=" w-full max-w-md border-none bg-background shadow-lg z-20">
         <CardHeader>
           <CardTitle>Login</CardTitle>
           <CardDescription>
