@@ -21,6 +21,7 @@ import TimesheetCalender from "@/pages/private/Employee_Components/Timesheet/Tim
 import TimesheetTaskDetails from "@/pages/private/Employee_Components/Timesheet/TimesheetTaskDetails";
 import TimesheetAssignedTask from "@/pages/private/Employee_Components/Timesheet/TimesheetAssignedTask";
 import TrackRequestPage from "./pages/private/Track Request/TrackRequestPage";
+import Unauthorized from "./pages/public/UnauthorizedPage";
 
 function App() {
   const userRole = localStorage.getItem("role");
@@ -36,7 +37,16 @@ function App() {
       <Route
         element={
           token ? (
-            <AuthMiddleware allowedRoles={[Roles.ROLE_EMPLOYEE]}>
+            <AuthMiddleware
+              allowedRoles={[
+                Roles.ROLE_EMPLOYEE,
+                Roles.SUPER_ADMIN,
+                Roles.ROLE_HR,
+                Roles.ROLE_MANAGER,
+                Roles.ROLE_RECRUITER,
+                Roles.ROLE_VIEWER,
+              ]}
+            >
               <LayoutPage role={userRole!} />
             </AuthMiddleware>
           ) : (
@@ -118,7 +128,7 @@ function App() {
         </Route>
 
         {/* HR Routes */}
-        <Route path="/hr">
+        <Route path="hr">
           <Route
             path="dashboard"
             element={
@@ -177,6 +187,9 @@ function App() {
           )
         }
       />
+
+      {/* Unauthorized route */}
+      <Route path="/unauthorized" element={<Unauthorized />} />
 
       {/* Not found route */}
       <Route path="*" element={<NotFoundPage />} />

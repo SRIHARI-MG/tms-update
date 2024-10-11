@@ -255,11 +255,7 @@ export default function Header() {
 
   useEffect(() => {
     const roleBasedNavItems: { [key: string]: NavItem[] } = {
-      ROLE_HR: [
-        { label: "Profile", path: "/hr/profile" },
-        { label: "Jobs", path: "/hr/jobs" },
-        { label: "Candidates", path: "/hr/candidates" },
-      ],
+      ROLE_HR: [{ label: "Profile", path: "/hr/dashboard" }],
       ROLE_MANAGER: [
         { label: "Profile", path: "/manager/profile" },
         { label: "Team", path: "/manager/team" },
@@ -325,18 +321,10 @@ export default function Header() {
 
   const trackRequestRenderNavigation = (): string => {
     let result = "";
-    if (userRole === "ROLE_HR") {
-      result = "/hr/track-request";
-    } else if (userRole === "ROLE_MANAGER") {
+    if (userRole === "ROLE_MANAGER") {
       result = "/manager/track-request";
-    } else if (userRole === "ROLE_VIEWER") {
-      result = "/viewer/track-request";
     } else if (userRole === "ROLE_EMPLOYEE") {
       result = "/employee/track-request";
-    } else if (userRole === "SUPER_ADMIN") {
-      result = "/superadmin/track-request";
-    } else if (userRole === "ROLE_RECRUITER") {
-      result = "/recruiter/track-request";
     }
     return result;
   };

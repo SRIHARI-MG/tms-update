@@ -12,7 +12,6 @@ export function LayoutPage({ role }: LayoutProps) {
 
   return (
     <>
-      {/* <LogoutHandler /> */}
       <ThemeProvider>
         <UserProvider>
           <div className="h-screen bg-background flex flex-col overflow-hidden">

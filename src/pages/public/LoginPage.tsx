@@ -30,7 +30,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { defaultRedirectPerRole, Roles } from "@/utils/roleConfig";
 import LoadingButton from "@/components/ui/loading-button";
-import MindgraphNetwork from "@/components/ui/mindgraph-network-animation";
 
 const formSchema = z.object({
   email: z
@@ -98,8 +97,7 @@ export default function LoginPage() {
       console.error("Login error:", error);
       toast({
         title: "Error",
-        description:
-          "Login failed. Please check your credentials and try again.",
+        description: error?.response?.data?.response?.action,
         variant: "destructive",
         className: "fixed bottom-4 right-4  max-w-sm",
       });
@@ -115,7 +113,6 @@ export default function LoginPage() {
       title="Welcome Back"
       description="Login to access your account and manage your services."
     >
-      
       <Card className=" w-full max-w-md border-none bg-background shadow-lg z-20">
         <CardHeader>
           <CardTitle>Login</CardTitle>
