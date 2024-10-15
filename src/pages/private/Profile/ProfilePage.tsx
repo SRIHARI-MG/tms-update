@@ -41,8 +41,8 @@ import api from "@/api/apiService";
 import React from "react";
 import { useToast } from "@/hooks/use-toast";
 import { handleLogout } from "@/utils/authHandler";
-import PageIndicator from "@/components/ui/page-indicator";
 import { useUser, useUserActions } from "@/layout/Header";
+import ProfileDetailsSection from "./ProfileDetailsSection";
 
 const BankDetailsSection = lazy(() => import("./BankDetailsSection"));
 const ChangePasswordSection = lazy(() => import("./ChangePasswordSection"));
@@ -709,223 +709,17 @@ export default function ProfilePage() {
           </div>
           <CardContent>
             {selectedNav === "Profile Details" && (
-              <div className="mt-5 space-y-6">
-                <div className="flex justify-between items-center sm:flex-wrap">
-                  <PageIndicator
-                    pages={formSections.map((section) => section.title)}
-                    activePage={activePage}
-                    onPageChange={setActivePage}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  {formSections.map(
-                    (section) =>
-                      section.title === activePage && (
-                        <div key={section.title}>
-                          <p className="text-lg font-semibold">
-                            {section.title}
-                          </p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            {section.keys.map((key) => (
-                              <div key={key} className="space-y-2">
-                                <Label
-                                  htmlFor={key}
-                                  className="text-sm font-medium text-gray-500"
-                                >
-                                  {key
-                                    .replace(/([A-Z])/g, " $1")
-                                    .replace(/^./, (str) => str.toUpperCase())}
-                                  {section.title !== "Professional Details" && (
-                                    <span className="text-red-500">*</span>
-                                  )}
-                                </Label>
-
-                                {key === "gender" ? (
-                                  <Select
-                                    value={editedDetails[key]}
-                                    onValueChange={(value) =>
-                                      handleInputChange(key, value)
-                                    }
-                                    disabled={!isEditing}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select Gender" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {genderOptions.map((option) => (
-                                        <SelectItem key={option} value={option}>
-                                          {option}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                ) : key === "bloodGroup" ? (
-                                  <Select
-                                    value={editedDetails[key]}
-                                    onValueChange={(value) =>
-                                      handleInputChange(key, value)
-                                    }
-                                    disabled={!isEditing}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select Blood Group" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {bloodGroupOptions.map((option) => (
-                                        <SelectItem key={option} value={option}>
-                                          {option}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                ) : key === "willingToTravel" ? (
-                                  <Select
-                                    value={editedDetails[key].toString()} // Convert boolean to string for Select
-                                    onValueChange={
-                                      (value) =>
-                                        handleInputChange(key, value === "true") // Convert string back to boolean
-                                    }
-                                    disabled={
-                                      !isEditing || !isFieldEditable(key)
-                                    }
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select">
-                                        {getWillingToTravelDisplay(
-                                          editedDetails[key]
-                                        )}
-                                      </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {willingToTravelOptions.map((option) => (
-                                        <SelectItem
-                                          key={option.label}
-                                          value={option.value.toString()}
-                                        >
-                                          {option.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                ) : key === "employmentType" ? (
-                                  <Select
-                                    value={editedDetails[key]}
-                                    onValueChange={(value) =>
-                                      handleInputChange(key, value)
-                                    }
-                                    disabled={
-                                      !isEditing || !isFieldEditable(key)
-                                    }
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select Employment Type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {employmentTypeOptions.map((option) => (
-                                        <SelectItem key={option} value={option}>
-                                          {option}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                ) : key === "shiftTiming" ? (
-                                  <Select
-                                    value={editedDetails[key]}
-                                    onValueChange={(value) =>
-                                      handleInputChange(key, value)
-                                    }
-                                    disabled={
-                                      !isEditing || !isFieldEditable(key)
-                                    }
-                                  >
-                                    <SelectTrigger className="w-full ">
-                                      <SelectValue placeholder="Select Shift Time" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {shiftTimeOptions.map((option) => (
-                                        <SelectItem key={option} value={option}>
-                                          {option}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                ) : key === "mobileNumber" ||
-                                  key === "alternateMobileNumber" ||
-                                  key === "emergencyContactMobileNumber" ? (
-                                  <Suspense fallback={<div></div>}>
-                                    <PhoneInput
-                                      value={phoneNumbers[key]}
-                                      onChange={(value: any) =>
-                                        handlePhoneChange(key, value)
-                                      }
-                                      readOnly={!isEditing}
-                                      countryCodes={countryCodes}
-                                      required={
-                                        section.title !== "Professional Details"
-                                      }
-                                    />
-                                  </Suspense>
-                                ) : key === "skills" ? (
-                                  !isEditing ? (
-                                    <div className="flex flex-wrap gap-2">
-                                      {(editedDetails[key] as string[]).map(
-                                        (skill, index) => (
-                                          <span
-                                            key={index}
-                                            className="bg-primary/10 text-primary px-2 py-1 rounded-full text-sm"
-                                          >
-                                            {skill}
-                                          </span>
-                                        )
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <TagInput
-                                      initialTags={
-                                        editedDetails[key] as string[]
-                                      }
-                                      onTagsChange={handleTagsChange}
-                                    />
-                                  )
-                                ) : (
-                                  <Input
-                                    id={key}
-                                    value={editedDetails[key] as string}
-                                    onChange={(e) =>
-                                      handleInputChange(key, e.target.value)
-                                    }
-                                    readOnly={
-                                      !isEditing || !isFieldEditable(key)
-                                    }
-                                    className={`${
-                                      !isEditing || !isFieldEditable(key)
-                                        ? "bg-primary/5 text-gray-700"
-                                        : ""
-                                    } ${
-                                      errors[key]
-                                        ? "border-red-500"
-                                        : "border-gray-300"
-                                    }`}
-                                    required={
-                                      section.title !== "Professional Details"
-                                    }
-                                  />
-                                )}
-                                {errors[key] && (
-                                  <p className="text-red-500 text-xs mt-1">
-                                    {errors[key]}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )
-                  )}
-                  {/* <FormContent /> */}
-                </div>
-              </div>
+              <ProfileDetailsSection
+                isEditing={isEditing}
+                userDetails={userDetails}
+                editedDetails={editedDetails}
+                setEditedDetails={setEditedDetails}
+                setIsEditing={setIsEditing}
+                handleRequestApproval={handleRequestApproval}
+                errors={errors}
+                phoneNumbers={phoneNumbers}
+                setPhoneNumbers={setPhoneNumbers}
+              />
             )}
             {selectedNav === "Bank Details" && (
               <Suspense fallback={<div></div>}>

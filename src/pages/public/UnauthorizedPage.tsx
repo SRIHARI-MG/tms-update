@@ -19,7 +19,7 @@ export default function Unauthorized() {
 
   useEffect(() => {
     if (countdown === 0) {
-      navigate("/login");
+      navigate("/");
     }
   }, [countdown, navigate]);
 
