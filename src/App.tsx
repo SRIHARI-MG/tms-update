@@ -9,6 +9,10 @@ import { AuthMiddleware } from "@/AuthMiddleware";
 import { Roles, defaultRedirectPerRole } from "@/utils/roleConfig";
 import { LayoutPage } from "@/layout/LayoutPage";
 import Loading from "./components/ui/loading";
+import OnDutyEmployees from "./pages/private/HR_Components/Employee_Hub/OnDutyEmployees";
+import OffboardEmployees from "./pages/private/HR_Components/Employee_Hub/OffboardEmployees";
+import WorkspaceRequestApproval from "./pages/private/HR_Components/Workspace/WorkspaceRequestApproval";
+import EmployeeProfilePage from "./pages/private/HR_Components/Employee_Hub/EmployeeProfilePage";
 
 // Lazy loaded components
 const LoginPage = lazy(() => import("@/pages/public/LoginPage"));
@@ -176,6 +180,58 @@ function App() {
                 </AuthMiddleware>
               }
             />
+            <Route path="employee-hub">
+              <Route
+                path="onduty-employees"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
+                    <OnDutyEmployees />
+                  </AuthMiddleware>
+                }
+              />
+              <Route
+                path="onduty-employees/:userId"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
+                    <EmployeeProfilePage />
+                  </AuthMiddleware>
+                }
+              />
+              <Route
+                path="offboarded-employees"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
+                    <OffboardEmployees />
+                  </AuthMiddleware>
+                }
+              />
+              <Route
+                path="offboardeds-employees/:userId"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
+                    <EmployeeProfilePage />
+                  </AuthMiddleware>
+                }
+              />
+            </Route>
+            <Route path="workspace">
+              <Route
+                path="collaborate"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
+                    <WorkspaceCollaborate />
+                  </AuthMiddleware>
+                }
+              />
+              <Route
+                path="request-approval"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
+                    <TrackRequestPage />
+                  </AuthMiddleware>
+                }
+              />
+            </Route>
           </Route>
 
           {/* Manager Routes */}

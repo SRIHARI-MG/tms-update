@@ -21,29 +21,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X } from "lucide-react";
-import { format } from "path";
-
-const requestSections = [
-  {
-    title: "Profile Request",
-    apiUrl: "/api/v1/employee/my-update-requests",
-  },
-  {
-    title: "Bank Details Request",
-    apiUrl: "/api/v1/bankDetails/my-bank-details-update-requests",
-  },
-  {
-    title: "Certificate Request",
-    apiUrl: "/api/v1/certificate/my-certificate-update-requests",
-  },
-  {
-    title: "Documents Request",
-    apiUrl: "/api/v1/document/my-document-update-requests",
-  },
-];
+import { toast } from "@/hooks/use-toast";
+import Loading from "@/components/ui/loading";
 
 const TrackRequestPage = () => {
+  const userRole = localStorage.getItem("role");
+  const isHR = userRole === "ROLE_HR";
+
+  const requestSections = [
+    {
+      title: "Profile Request",
+      apiUrl: isHR
+        ? "/api/v1/admin/update-request-list"
+        : "/api/v1/employee/my-update-requests",
+    },
+    {
+      title: "Bank Details Request",
+      apiUrl: isHR
+        ? "/api/v1/bankDetails/update-request-list"
+        : "/api/v1/bankDetails/my-bank-details-update-requests",
+    },
+    {
+      title: "Documents Request",
+      apiUrl: isHR
+        ? "/api/v1/document/update-request-list"
+        : "/api/v1/document/my-document-update-requests",
+    },
+  ];
+
+  if (!isHR) {
+    requestSections.push({
+      title: "Certificate Request",
+      apiUrl: "/api/v1/certificate/my-certificate-update-requests",
+    });
+  }
   const [activePage, setActivePage] = useState<string>(
     requestSections[0].title
   );
@@ -56,14 +67,26 @@ const TrackRequestPage = () => {
   const [formData, setFormData] = useState<any>({});
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [isFetchingData, setIsFetchingData] = useState(false);
 
   // Status options
   const statusOptions = ["PENDING", "APPROVED", "REJECTED", "INPROGRESS"];
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await api.get(activeApiUrl);
-      setRequestedData(response.data.response.data);
+      try {
+        setIsFetchingData(true);
+        const response = await api.get(activeApiUrl);
+        setRequestedData(response.data.response.data);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error?.response?.data.response.action,
+          variant: "destructive",
+        });
+      } finally {
+        setIsFetchingData(false);
+      }
     };
     fetchData();
   }, [activeApiUrl]);
@@ -281,7 +304,11 @@ const TrackRequestPage = () => {
                 hasChanged && value !== null ? "border-2 border-red-500" : ""
               }`}
             >
-              <AvatarImage loading="lazy" className="object-cover" src={value as string} />
+              <AvatarImage
+                loading="lazy"
+                className="object-cover"
+                src={value as string}
+              />
               <AvatarFallback>
                 {label.substring(0, 2).toUpperCase()}
               </AvatarFallback>
@@ -384,7 +411,7 @@ const TrackRequestPage = () => {
               } w-24 h-24`}
             >
               <AvatarImage
-              loading="lazy"
+                loading="lazy"
                 className="object-cover"
                 src={formData.profileUrl || undefined}
               />
@@ -530,7 +557,7 @@ const TrackRequestPage = () => {
           </div>
         </div>
       );
-    } else if (activePage === "Certificate Request") {
+    } else if (activePage === "Certificate Request" && !isHR) {
       return (
         <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
@@ -673,7 +700,9 @@ const TrackRequestPage = () => {
 
   return (
     <div className="pb-5">
-      <h1 className="text-2xl font-semibold mb-4">Track Requests</h1>
+      <h1 className="text-2xl font-semibold mb-4">
+        {isHR ? "Approval Requests" : "Track Requests"}
+      </h1>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
         {/* Mobile Dropdown Navigation */}
         <div className="w-full sm:hidden">
@@ -733,13 +762,15 @@ const TrackRequestPage = () => {
           </Button>
         </div>
       </div>
-
-      <RequestSection
-        title={activePage}
-        data={filteredData}
-        columns={generateColumns(activePage)}
-      />
-
+      {isFetchingData ? (
+        <Loading />
+      ) : (
+        <RequestSection
+          title={activePage}
+          data={filteredData}
+          columns={generateColumns(activePage)}
+        />
+      )}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>

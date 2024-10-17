@@ -233,6 +233,8 @@ export default function Header() {
   const { toast } = useToast();
 
   const userRole: string | null = localStorage.getItem("role");
+  const showTrackRequest =
+    userRole === "ROLE_MANAGER" || userRole === "ROLE_EMPLOYEE";
 
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -255,7 +257,34 @@ export default function Header() {
 
   useEffect(() => {
     const roleBasedNavItems: { [key: string]: NavItem[] } = {
-      ROLE_HR: [{ label: "Profile", path: "/hr/dashboard" }],
+      ROLE_HR: [
+        { label: "Dashboard", path: "/hr/dashboard" },
+        {
+          label: "Employee Hub",
+          path: "/hr/employee-hub",
+          children: [
+            {
+              label: "On-Duty Employees",
+              path: "/hr/employee-hub/onduty-employees",
+            },
+            {
+              label: "Offboarded Employees",
+              path: "/hr/employee-hub/offboarded-employees",
+            },
+          ],
+        },
+        {
+          label: "Workspace",
+          path: "/hr/workspace",
+          children: [
+            { label: "Collaborate", path: "/hr/workspace/collaborate" },
+            {
+              label: "Request Approval",
+              path: "/hr/workspace/request-approval",
+            },
+          ],
+        },
+      ],
       ROLE_MANAGER: [
         { label: "Profile", path: "/manager/profile" },
         { label: "Team", path: "/manager/team" },
@@ -525,14 +554,16 @@ export default function Header() {
                 <User2 className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() =>
-                  handleMenuItemClick(trackRequestRenderNavigation())
-                }
-              >
-                <Bell className="mr-2 h-4 w-4" />
-                Track Request
-              </DropdownMenuItem>
+              {showTrackRequest && (
+                <DropdownMenuItem
+                  onSelect={() =>
+                    handleMenuItemClick(trackRequestRenderNavigation())
+                  }
+                >
+                  <Bell className="mr-2 h-4 w-4" />
+                  Track Request
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-red-600" onClick={onLogout}>
                 <LogOut className="mr-2 h-4 w-4" />

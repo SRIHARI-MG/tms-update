@@ -16,6 +16,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
+import Loading from "@/components/ui/loading";
 
 interface RequestSectionProps {
   title: string;
@@ -92,7 +93,6 @@ const RequestSection: React.FC<RequestSectionProps> = ({
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">{title}</h2>
       <div className="hidden md:block">
         <DynamicTable data={data} columns={columns} />
       </div>
