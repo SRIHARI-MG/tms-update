@@ -12,15 +12,16 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@/layout/Header";
 import ProjectCard from "@/components/ui/project-card";
 import Loading from "@/components/ui/loading";
+import * as XLSX from "xlsx";
 
 interface Project {
   projectId: string;
   projectCode: string;
   projectName: string;
   projectDescription: string;
-  startDate: string;
   estimatedEndDate: string;
   projectType: string;
+  startDate: string;
   utilizationPercentage: number;
   projectStatus: string;
   projectOwner: string;
@@ -29,8 +30,8 @@ interface Project {
   projectManagerProfile: string;
 }
 
-const WorkspaceMyProjects = () => {
-const { userDetails } = useUser();
+const Projects = () => {
+  const { userDetails } = useUser();
   const [projects, setProjects] = useState<Project[]>([]);
   const [filters, setFilters] = useState({
     projectType: "all",
@@ -41,9 +42,7 @@ const { userDetails } = useUser();
   const fetchProjects = async () => {
     try {
       setIsFetchingData(true);
-      const response = await api.get(
-        `/api/v1/project/get-project-of-user/${userDetails?.userId}`
-      );
+      const response = await api.get("/api/v1/project/get-all-projects-of-manager/MG180328");
       setProjects(response.data.response.data);
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -101,6 +100,28 @@ const { userDetails } = useUser();
     }
   };
 
+  //export
+   
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredProjects.map(proj => ({
+      "Project Code": proj.projectCode,
+      "Project Name": proj.projectName,
+      "Project Description": proj.projectDescription,
+      "Start Date": proj.startDate,
+      "Estimated End Date": proj.estimatedEndDate,
+      "Project Type": proj.projectType,
+      "Utilization Percentage": proj.utilizationPercentage,
+      "Project Status": proj.projectStatus,
+      "Project Owner": proj.projectOwner,
+      "Project Manager": proj.projectManager,
+    })));
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Projects");
+    XLSX.writeFile(workbook, "projects.xlsx");
+  };
+
+
   const columns = [
     {
       header: "Project Code",
@@ -115,11 +136,11 @@ const { userDetails } = useUser();
       width: "25%",
     },
     {
-      header: "Start Date",
-      accessor: "startDate",
-      sortable: true,
-      width: "15%",
-    },
+        header: "Sub Projects",
+        accessor: "projectName",
+        sortable: true,
+        width: "25%",
+      },
     {
       header: "Project Type",
       accessor: "projectType",
@@ -127,10 +148,16 @@ const { userDetails } = useUser();
       width: "15%",
     },
     {
-      header: "Utilization %",
-      accessor: "utilizationPercentage",
-      sortable: true,
-      width: "15%",
+        header: "Project Manager",
+        accessor: "projectName",
+        sortable: true,
+        width: "25%",
+    },
+    {
+        header: "Project Owner",
+        accessor: "projectName",
+        sortable: true,
+        width: "25%",
     },
     {
       header: "Status",
@@ -154,7 +181,7 @@ const { userDetails } = useUser();
 
   return (
     <div className="">
-      <h1 className="text-2xl font-semibold mb-5">My Projects</h1>
+      <h1 className="text-2xl font-semibold mb-5">Projects</h1>
       <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 mb-4">
         <Button onClick={clearFilter} className="w-fit sm:w-auto">
           Clear All Filters
@@ -191,6 +218,9 @@ const { userDetails } = useUser();
             ))}
           </SelectContent>
         </Select>
+        <Button onClick={exportToExcel} className="w-fit sm:w-auto">
+          Export
+        </Button>
       </div>
 
       <div className="overflow-x-auto">
@@ -220,4 +250,4 @@ const { userDetails } = useUser();
   );
 };
 
-export default WorkspaceMyProjects;
+export default Projects;

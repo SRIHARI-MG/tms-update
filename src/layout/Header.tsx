@@ -287,8 +287,11 @@ export default function Header() {
       ],
       ROLE_MANAGER: [
         { label: "Profile", path: "/manager/profile" },
-        { label: "Team", path: "/manager/team" },
-        { label: "Projects", path: "/manager/projects" },
+        { label: "Collaborate", path: "/manager/Collaborate" },
+        { label: "Projects", path: "/manager/Projects" },
+        { label: "Employees", path: "/manager/Employees"},
+        { label: "Certificate", path: "/manager/Certificate"},
+        { label: "Employee_details", path: "/manager/Employee_details"}
       ],
       ROLE_EMPLOYEE: [
         { label: "Dashboard", path: "/employee/dashboard" },

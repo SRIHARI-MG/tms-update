@@ -161,7 +161,7 @@ const OffboardEmployees = () => {
 
   const handleViewEmployee = (employee: UserDetails) => {
     console.log("Viewing offboarded employee:", employee);
-    navigate(`/hr/employee-hub/offboardeds-employees/${employee.userId}`, {
+    navigate(`/hr/employee-hub/offboarded-employees/${employee.userId}`, {
       state: { employeeDetails: employee },
     });
   };

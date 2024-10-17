@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/select";
 import api from "@/api/apiService";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/layout/Header";
 import ProjectCard from "@/components/ui/project-card";
 import Loading from "@/components/ui/loading";
 
@@ -29,8 +28,7 @@ interface Project {
   projectManagerProfile: string;
 }
 
-const WorkspaceMyProjects = () => {
-const { userDetails } = useUser();
+const ViewProjectDetailsById = ({userId}:{userId?:string}) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filters, setFilters] = useState({
     projectType: "all",
@@ -42,7 +40,7 @@ const { userDetails } = useUser();
     try {
       setIsFetchingData(true);
       const response = await api.get(
-        `/api/v1/project/get-project-of-user/${userDetails?.userId}`
+        `/api/v1/project/get-project-of-user/${userId}`
       );
       setProjects(response.data.response.data);
     } catch (error) {
@@ -54,7 +52,7 @@ const { userDetails } = useUser();
 
   useEffect(() => {
     fetchProjects();
-  }, [userDetails?.userId]);
+  }, [userId]);
 
   const filterOptions = useMemo(() => {
     return {
@@ -220,4 +218,4 @@ const { userDetails } = useUser();
   );
 };
 
-export default WorkspaceMyProjects;
+export default ViewProjectDetailsById;
