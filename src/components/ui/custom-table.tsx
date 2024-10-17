@@ -15,21 +15,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
-  Frown,
-  Lightbulb,
+  ArrowUp,
+  ArrowDown,
   Database,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
@@ -37,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 interface Column<T> {
   header: string;
   accessor: keyof T | ((item: T) => React.ReactNode);
+  sortAccessor?: (item: T) => any;
   className?: string;
   hidden?: boolean;
   sortable?: boolean;
@@ -51,6 +44,7 @@ interface DynamicTableProps<T> {
   expandedContent?: (item: T) => React.ReactNode;
   itemsPerPage?: number;
   onClickView?: (item: T) => React.ReactNode;
+  onClickNavigate?: (item: T) => void;
 }
 
 export default function DynamicTable<T>({
@@ -59,10 +53,11 @@ export default function DynamicTable<T>({
   actions,
   expandedContent,
   onClickView,
+  onClickNavigate,
   itemsPerPage = 10,
 }: DynamicTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortColumn, setSortColumn] = useState<keyof T | null>(null);
+  const [sortColumn, setSortColumn] = useState<Column<T> | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [filters, setFilters] = useState<Record<keyof T, string>>(
     {} as Record<keyof T, string>
@@ -76,7 +71,7 @@ export default function DynamicTable<T>({
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
         result = result.filter((item) =>
-          String(item[key as keyof T])
+          String(item?.[key as keyof T] ?? "")
             .toLowerCase()
             .includes(value.toLowerCase())
         );
@@ -86,21 +81,28 @@ export default function DynamicTable<T>({
     // Apply sorting
     if (sortColumn) {
       result.sort((a, b) => {
-        const aValue = a[sortColumn];
-        const bValue = b[sortColumn];
+        const aValue = sortColumn.sortAccessor
+          ? sortColumn.sortAccessor(a)
+          : a?.[sortColumn.accessor as keyof T];
+        const bValue = sortColumn.sortAccessor
+          ? sortColumn.sortAccessor(b)
+          : b?.[sortColumn.accessor as keyof T];
 
         if (aValue === bValue) return 0;
+        if (aValue == null) return sortDirection === "asc" ? -1 : 1;
+        if (bValue == null) return sortDirection === "asc" ? 1 : -1;
+
+        if (aValue instanceof Date && bValue instanceof Date) {
+          return sortDirection === "asc"
+            ? aValue.getTime() - bValue.getTime()
+            : bValue.getTime() - aValue.getTime();
+        }
 
         if (typeof aValue === "string" && typeof bValue === "string") {
           return sortDirection === "asc"
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
         }
-
-        if (aValue === null || aValue === undefined)
-          return sortDirection === "asc" ? -1 : 1;
-        if (bValue === null || bValue === undefined)
-          return sortDirection === "asc" ? 1 : -1;
 
         return sortDirection === "asc"
           ? aValue < bValue
@@ -122,7 +124,7 @@ export default function DynamicTable<T>({
     currentPage * itemsPerPage
   );
 
-  const handleSort = (column: keyof T) => {
+  const handleSort = (column: Column<T>) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -134,6 +136,19 @@ export default function DynamicTable<T>({
   const handleFilter = (column: keyof T, value: string) => {
     setFilters((prev) => ({ ...prev, [column]: value }));
     setCurrentPage(1); // Reset to first page when filter changes
+  };
+
+  const handleRowClick = (
+    event: React.MouseEvent<HTMLTableRowElement>,
+    item: T
+  ) => {
+    // Check if the clicked element is within the actions column
+    const isActionColumn = (event.target as HTMLElement).closest(
+      ".actions-column"
+    );
+    if (!isActionColumn && onClickNavigate) {
+      onClickNavigate(item);
+    }
   };
 
   // New function to render empty state
@@ -149,6 +164,14 @@ export default function DynamicTable<T>({
     </div>
   );
 
+  const renderCellContent = (item: T, column: Column<T>) => {
+    if (typeof column.accessor === "function") {
+      return column.accessor(item);
+    }
+    const value = item?.[column.accessor as keyof T];
+    return value != null ? value : "-";
+  };
+
   return (
     <>
       <Table className="border rounded-t-lg">
@@ -163,14 +186,23 @@ export default function DynamicTable<T>({
                     style={{ width: column.width }}
                   >
                     <div className="flex items-center justify-between">
-                      {column.header}
+                      <span>{column.header}</span>
                       {column.sortable && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleSort(column.accessor as keyof T)}
+                          onClick={() => handleSort(column)}
+                          className="ml-2"
                         >
-                          <ArrowUpDown className="h-4 w-4" />
+                          {sortColumn === column ? (
+                            sortDirection === "asc" ? (
+                              <ArrowUp className="h-4 w-4" />
+                            ) : (
+                              <ArrowDown className="h-4 w-4" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="h-4 w-4" />
+                          )}
                         </Button>
                       )}
                     </div>
@@ -199,6 +231,7 @@ export default function DynamicTable<T>({
                     className={`hover:bg-primary/10 bg-primary/5 ${
                       rowIndex !== paginatedData.length - 1 ? "border-b" : ""
                     } cursor-pointer`}
+                    onClick={(event) => handleRowClick(event, item)}
                   >
                     {columns.map(
                       (column, colIndex) =>
@@ -208,14 +241,12 @@ export default function DynamicTable<T>({
                             className={`border-r ${column.className}`}
                             style={{ width: column.width }}
                           >
-                            {typeof column.accessor === "function"
-                              ? column.accessor(item)
-                              : (item[column.accessor] as React.ReactNode)}
+                            {renderCellContent(item, column)}
                           </TableCell>
                         )
                     )}
                     {actions && (
-                      <TableCell className="text-right">
+                      <TableCell className="text-right actions-column">
                         <div className="flex justify-end space-x-2">
                           {actions(item)}
                           {expandedContent && (
