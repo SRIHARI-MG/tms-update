@@ -1,125 +1,106 @@
-import React, { useEffect, useState, useMemo } from "react";
-import DynamicTable from "@/components/ui/custom-table";
+'use client'
+
+import React, { useEffect, useState, useMemo } from "react"
+import DynamicTable from "@/components/ui/custom-table"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-// import mailLogo from "@/assets/Mail.svg";
-// import teamsLogo from "@/assets/teams.svg";
-// import whatsappLogo from "@/assets/whatsapp.svg";
-import api from "@/api/apiService";
-import { Button } from "@/components/ui/button";
-import EmployeeCard from "@/components/ui/employee-card";
-import { SearchInput } from "@/components/ui/search-input";
-import Loading from "@/components/ui/loading";
-import * as XLSX from "xlsx";
-import { useNavigate } from "react-router-dom";
-
+} from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import api from "@/api/apiService"
+import { Button } from "@/components/ui/button"
+import { SearchInput } from "@/components/ui/search-input"
+import Loading from "@/components/ui/loading"
+import * as XLSX from "xlsx"
+import { useNavigate } from "react-router-dom"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 interface Employee {
-  profileUrl: string;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  mobileNumber: string;
-  role: string;
-  designation: string;
-  branch: string;
-  skills: string[];
-  userProjects: string[];
-  reportingManagerName: string;
-  
+  profileUrl: string
+  userId: string
+  firstName: string
+  lastName: string
+  gender: string
+  email: string
+  personalEmail: string
+  mobileNumber: string
+  dateOfBirth: string
+  bloodGroup: string
+  department: string
+  role: string
+  designation: string
+  branch: string
+  reportingManagerName: string
+  reportingManagerEmail: string
+  dateOfJoining: string
+  skills: string[]
+  employmentType: string
+  internshipEndDate: string
+  internshipDuration: string
+  shiftTiming: string
+  willingToTravel: boolean
+  salary: string
+  alternateMobileNumber: string
+  emergencyContactPersonName: string
+  emergencyContactMobileNumber: string
+  currentAddress: {
+    addressLine1: string
+    addressLine2: string
+    landmark: string
+    nationality: string
+    zipcode: string
+    state: string
+    district: string
+  }
+  permanentAddress: {
+    addressLine1: string
+    addressLine2: string
+    landmark: string
+    nationality: string
+    zipcode: string
+    state: string
+    district: string
+  }
+  userProjects: string[]
 }
 
-interface UserDetails {
-  profileUrl?: string;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  personalEmail: string;
-  email: string;
-  countryCode: string;
-  mobileNumber: string;
-  gender: string;
-  bloodGroup: string;
-  dateOfBirth: string;
-  alternateMobileNumber: string;
-  alternateMobileNumberCountryCode: string;
-  emergencyContactPersonName: string;
-  emergencyContactMobileNumber: string;
-  emergencyContactMobileNumberCountryCode: string;
-  department: string;
-  role: string;
-  designation: string;
-  employmentType: string;
-  internshipDuration?: string;
-  internshipEndDate?: string;
-  shiftTiming: string;
-  branch: string;
-  dateOfJoining: string;
-  dateOfLeaving: string | null;
-  lastLogin: string;
-  offboardingReason: string | null;
-  finalInteractionPdfName: string | null;
-  finalInteractionPdfUrl: string | null;
-  revokeReason: string | null;
-  reportingManagerId: string;
-  reportingMangerName: string;
-  reportingManagerEmail: string;
-  skills: string[];
-  userRole: string | null;
-  currentAddressLine1: string;
-  currentAddressLine2: string;
-  currentAddressLandmark: string;
-  currentAddressNationality: string;
-  currentAddressZipcode: string;
-  currentAddressState: string;
-  currentAddressDistrict: string;
-  permanentAddressLine1: string;
-  permanentAddressLine2: string;
-  permanentAddressLandmark: string;
-  permanentAddressNationality: string;
-  permanentAddressZipcode: string;
-  permanentAddressState: string;
-  permanentAddressDistrict: string;
-  userProjects: any[]; // You might want to define a more specific type for projects
-  bankDetail: BankDetail;
-  active: boolean;
-  willingToTravel: boolean;
-  superAdmin: boolean;
-  reportingManager: boolean;
-}
-
-const Employees = () => {
-  const navigate = useNavigate();
-  const [employees, setEmployees] = useState<Employee[]>([]);
+export default function Component() {
+  const navigate = useNavigate()
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([])
   const [filters, setFilters] = useState({
     role: "all",
     designation: "all",
     skill: "all",
     branch: "all",
     project: "all",
-  });
-  const [isfetchingData, setIsFetchingData] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  })
+  const [isFetchingData, setIsFetchingData] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedFields, setSelectedFields] = useState<string[]>([])
+
   const fetchEmployees = async () => {
     try {
-      setIsFetchingData(true);
-      const response = await api.get("/api/v1/admin/collaborate-employee-list");
-      setEmployees(response.data.response.data);
+      setIsFetchingData(true)
+      const response = await api.get("/api/v1/admin/collaborate-employee-list")
+      setEmployees(response.data.response.data)
     } catch (error) {
-      console.error("Error fetching employees:", error);
+      console.error("Error fetching employees:", error)
     } finally {
-      setIsFetchingData(false);
+      setIsFetchingData(false)
     }
-  };
+  }
+
   useEffect(() => {
-    fetchEmployees();
-  }, []);
+    fetchEmployees()
+  }, [])
 
   const filterOptions = useMemo(() => {
     return {
@@ -128,15 +109,15 @@ const Employees = () => {
       skills: [...new Set(employees.flatMap((emp) => emp.skills))],
       branches: [...new Set(employees.map((emp) => emp.branch))],
       projects: [...new Set(employees.flatMap((emp) => emp.userProjects))],
-    };
-  }, [employees]);
+    }
+  }, [employees])
 
   const filteredEmployees = useMemo(() => {
     return employees.filter((emp) => {
       const searchMatch =
         searchTerm === "" ||
         emp.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.userId.toLowerCase().includes(searchTerm.toLowerCase());
+        emp.userId.toLowerCase().includes(searchTerm.toLowerCase())
 
       return (
         searchMatch &&
@@ -147,9 +128,9 @@ const Employees = () => {
         (filters.branch === "all" || emp.branch === filters.branch) &&
         (filters.project === "all" ||
           emp.userProjects.includes(filters.project))
-      );
-    });
-  }, [employees, filters, searchTerm]);
+      )
+    })
+  }, [employees, filters, searchTerm])
 
   const clearFilter = () => {
     setFilters({
@@ -158,44 +139,153 @@ const Employees = () => {
       skill: "all",
       branch: "all",
       project: "all",
-    });
-    setSearchTerm("");
-  };
+    })
+    setSearchTerm("")
+  }
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-  };
+    setSearchTerm(event.target.value)
+  }
 
   const handleFilterChange = (
     filterType: keyof typeof filters,
     value: string
   ) => {
-    setFilters((prev) => ({ ...prev, [filterType]: value }));
-  };
+    setFilters((prev) => ({ ...prev, [filterType]: value }))
+  }
 
-  //export
-  const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredEmployees.map(emp => ({
-      "First Name": emp.firstName,
-      "Role": emp.role,
-      "Designation": emp.designation,
-      "Skills": emp.skills.join(", "),
-      "Branch": emp.branch,
-    })));
-  
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Employees");
-  
-    XLSX.writeFile(workbook, "employees.xlsx");
-  };
-  
-  // Update handleExport to only call exportToExcel
+  const exportToExcel = (data: any[], fileName: string) => {
+    if (data.length === 0) {
+      alert("No data to export.")
+      return
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(data)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Employees Data")
+    XLSX.writeFile(workbook, `${fileName}.xlsx`, { bookType: 'xlsx', type: 'array' })
+  }
+
   const handleExport = () => {
-    exportToExcel();
-    
-  };
+    const exportData = employees
+      .filter((emp) => selectedEmployees.includes(emp.userId))
+      .map((employee) => {
+        const filteredData: { [key: string]: any } = {}
+        selectedFields.forEach((field) => {
+          const keys = field.split(".")
+          let value = employee as any
+          keys.forEach((key) => {
+            value = value[key]
+          })
+          filteredData[field] = value
+        })
+        return filteredData
+      })
+
+    exportToExcel(exportData, "selected_employees_data")
+  }
+
+  const handleExportAll = () => {
+    const exportData = employees.map((employee) => {
+      const filteredData: { [key: string]: any } = {}
+      fieldsList.forEach((field) => {
+        const keys = field.split(".")
+        let value = employee as any
+        keys.forEach((key) => {
+          value = value[key]
+        })
+        filteredData[field] = value
+      })
+      return filteredData
+    })
+
+    exportToExcel(exportData, "all_employees_data")
+  }
+
+  const fieldsList = [
+    "userId",
+    "firstName",
+    "lastName",
+    "gender",
+    "email",
+    "personalEmail",
+    "mobileNumber",
+    "dateOfBirth",
+    "bloodGroup",
+    "department",
+    "role",
+    "designation",
+    "branch",
+    "reportingManagerName",
+    "reportingManagerEmail",
+    "dateOfJoining",
+    "skills",
+    "employmentType",
+    "internshipEndDate",
+    "internshipDuration",
+    "shiftTiming",
+    "willingToTravel",
+    "salary",
+    "alternateMobileNumber",
+    "emergencyContactPersonName",
+    "emergencyContactMobileNumber",
+    "currentAddress.addressLine1",
+    "currentAddress.addressLine2",
+    "currentAddress.landmark",
+    "currentAddress.nationality",
+    "currentAddress.zipcode",
+    "currentAddress.state",
+    "currentAddress.district",
+    "permanentAddress.addressLine1",
+    "permanentAddress.addressLine2",
+    "permanentAddress.landmark",
+    "permanentAddress.nationality",
+    "permanentAddress.zipcode",
+    "permanentAddress.state",
+    "permanentAddress.district",
+  ]
+
+  const handleCheckboxChange = (checked: boolean, userId: string) => {
+    setSelectedEmployees((prev) =>
+      checked ? [...prev, userId] : prev.filter((id) => id !== userId)
+    )
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedEmployees(filteredEmployees.map((emp) => emp.userId))
+    } else {
+      setSelectedEmployees([])
+    }
+  }
+
+  const isAllSelected = selectedEmployees.length === filteredEmployees.length
+  const isIndeterminate =
+    selectedEmployees.length > 0 &&
+    selectedEmployees.length < filteredEmployees.length
 
   const columns = [
+    {
+      header: () => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={isAllSelected}
+            onCheckedChange={handleSelectAll}
+          />
+        </div>
+      ),
+      accessor: (item: Employee) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={selectedEmployees.includes(item.userId)}
+            onCheckedChange={(checked: boolean) =>
+              handleCheckboxChange(checked, item.userId)
+            }
+          />
+        </div>
+      ),
+      width: "5%",
+    },
     {
       header: "Employee",
       accessor: "firstName",
@@ -235,64 +325,24 @@ const Employees = () => {
       width: "35%",
     },
     {
-        header: "Branch",
-        accessor: "branch",
-        sortable: true,
-        filterable: true,
-        width: "10%",
-      }
-    // {
-    //   header: "Contact",
-    //   accessor: (item: Employee) => (
-    //     <div className="flex space-x-2">
-    //       <a href={`mailto:${item.email}`} title="Email">
-    //         <img
-    //           src={mailLogo}
-    //           alt="Email Logo"
-    //           className="w-5 h-5 text-gray-600 hover:text-primary"
-    //           loading="lazy"
-    //         />
-    //       </a>
-    //       <a
-    //         href={`https://teams.microsoft.com/l/chat/0/0?users=${item.email}`}
-    //         target="_blank"
-    //         rel="noopener noreferrer"
-    //         title="Microsoft Teams"
-    //       >
-    //         <img
-    //           src={teamsLogo}
-    //           className="w-5 h-5 text-gray-600 hover:text-primary"
-    //           loading="lazy"
-    //         />
-    //       </a>
-    //       <a
-    //         href={`https://wa.me/${item.mobileNumber}`}
-    //         target="_blank"
-    //         rel="noopener noreferrer"
-    //         title="WhatsApp"
-    //       >
-    //         <img
-    //           src={whatsappLogo}
-    //           className="w-5 h-5 text-gray-600 hover:text-primary"
-    //           loading="lazy"
-    //         />
-    //       </a>
-    //     </div>
-    //   ),
-    //   width: "5%",
-    // },
-  ];
+      header: "Branch",
+      accessor: "branch",
+      sortable: true,
+      filterable: true,
+      width: "10%",
+    },
+  ]
 
-  if (isfetchingData) {
-    return <Loading />;
+  if (isFetchingData) {
+    return <Loading />
   }
 
   const handleViewEmployee = (employee: Employee) => {
-    console.log("Viewing employee:", employee);
+    console.log("Viewing employee:", employee)
     navigate(`/manager/Employees/${employee.userId}`, {
       state: { employeeDetails: employee },
-    });
-  };
+    })
+  }
 
   return (
     <div className="pb-5">
@@ -395,13 +445,50 @@ const Employees = () => {
             placeholder="Search by name or ID"
             value={searchTerm}
             onChange={handleSearchChange}
-            className=" w-full"
+            className="w-full"
           />
         </div>
-        <Button onClick={handleExport} className="mr-2">Export</Button>
 
-       
-     
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button>Export</Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <div className="space-y-4">
+              <h3 className="font-medium">Export Options:</h3>
+              <Button onClick={handleExportAll} className="w-full mb-2">
+                Export All Data
+              </Button>
+              <h3 className="font-medium">Or Select Fields to Export:</h3>
+              <div className="max-h-60 overflow-y-auto space-y-2">
+                {fieldsList.map((field) => (
+                  <div key={field} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={field}
+                      checked={selectedFields.includes(field)}
+                      onCheckedChange={(checked) => {
+                        setSelectedFields((prev) =>
+                          checked
+                            ? [...prev, field]
+                            : prev.filter((f) => f !== field)
+                        )
+                      }}
+                    />
+                    <label
+                      htmlFor={field}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {field}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <Button onClick={handleExport} className="w-full">
+                Export Selected Data
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="overflow-x-auto">
@@ -413,9 +500,5 @@ const Employees = () => {
         />
       </div>
     </div>
-  );
-};
-
-export default Employees;
-
-
+  )
+}
