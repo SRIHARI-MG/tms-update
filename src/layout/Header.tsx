@@ -291,7 +291,8 @@ export default function Header() {
         { label: "Projects", path: "/manager/Projects" },
         { label: "Employees", path: "/manager/Employees"},
         { label: "Certificate", path: "/manager/Certificate"},
-        { label: "Employee_details", path: "/manager/Employee_details"}
+        { label: "Project_details", path: "/manager/Project_details"},
+        { label: "Projectmembers", path: "/manager/Projectmembers"}
       ],
       ROLE_EMPLOYEE: [
         { label: "Dashboard", path: "/employee/dashboard" },

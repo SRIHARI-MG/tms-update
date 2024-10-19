@@ -182,12 +182,7 @@ const Certificate = () => {
            <Button onClick={() => handleViewModalOpen(item)} className="bg-blue-500 text-white">
           View Details
         </Button>
-          <Button onClick={() => approveRequest(item.userId)} className="bg-green-500 text-white">
-            Approve
-          </Button>
-          <Button onClick={() => disapproveRequest(item.userId)} className="bg-red-500 text-white">
-            Disapprove
-          </Button>
+         
         </div>
       ),
       width: "20%",
@@ -348,6 +343,12 @@ const Certificate = () => {
               ) : (
                 <p className="mt-4 text-sm text-red-500">No certificate attachment available.</p>
               )}
+               <Button onClick={() => approveRequest(item.userId)} className="bg-green-500 text-white">
+                Approve
+              </Button>
+              <Button onClick={() => disapproveRequest(item.userId)} className="bg-red-500 text-white">
+                Disapprove
+              </Button>
             </div>
           )}
           <DialogFooter>

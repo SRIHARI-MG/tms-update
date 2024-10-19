@@ -19,6 +19,9 @@ import OffboardEmployees from "./pages/private/HR_Components/Employee_Hub/Offboa
 import WorkspaceRequestApproval from "./pages/private/HR_Components/Workspace/WorkspaceRequestApproval";
 import EmployeeProfilePage from "./pages/private/HR_Components/Employee_Hub/EmployeeProfilePage";
 import Certificateslist from "./pages/private/Certificateslist";
+import Project_details from "./pages/private/Manager_Components/Project_details";
+import { number, string } from "zod";
+import Projectmembers from "./pages/private/Manager_Components/Projectmembers";
 
 // Lazy loaded components
 const LoginPage = lazy(() => import("@/pages/public/LoginPage"));
@@ -299,14 +302,23 @@ function App() {
                 </AuthMiddleware>
               }
             />
-             <Route
-              path="Employee_details"
+            <Route
+              path="Project_details"
               element={
                 <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
-                  <Employee_details />
+                  <Project_details />
                 </AuthMiddleware>
               }
             />
+             <Route
+              path="Projectmembers"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
+                  <Projectmembers />
+                </AuthMiddleware>
+              }
+            />
+             
 
           </Route>
          

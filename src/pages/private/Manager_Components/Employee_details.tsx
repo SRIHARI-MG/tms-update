@@ -23,20 +23,21 @@ import Certificates from "../Certificateslist"
 import ViewProjectDetailsById from "../ViewProjectDetailsById"
 
 const formSchema = z.object({
-  employee_id: z.string().uuid(),
+  userId: z.string().uuid(),
   profileUrl: z.string().url().optional(),
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
   lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
+  personalEmail: z.string().email({ message: "Invalid email address." }),
   dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date must be in YYYY-MM-DD format." }),
   gender: z.string().min(1, { message: "Please select a gender." }),
   designation: z.string().min(1, { message: "Designation is required." }),
   position: z.string().min(1, { message: "Position is required." }),
-  joiningDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date must be in YYYY-MM-DD format." }),
+  dateOfJoining: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date must be in YYYY-MM-DD format." }),
   salary: z.number().positive({ message: "Salary must be a positive number." }),
-  mobilenumber: z.number().int().positive().gte(1000000000).lte(9999999999, { message: "Mobile number must be 10 digits." }),
-  alternatemobilenumber: z.number().int().positive().gte(1000000000).lte(9999999999, { message: "Alternate mobile number must be 10 digits." }).optional(),
-  bloodgroup: z.string().min(1, { message: "Blood group is required." }),
+  mobileNumber: z.number().int().positive().gte(1000000000).lte(9999999999, { message: "Mobile number must be 10 digits." }),
+  alternateMobileNumber: z.number().int().positive().gte(1000000000).lte(9999999999, { message: "Alternate mobile number must be 10 digits." }).optional(),
+  bloodGroup: z.string().min(1, { message: "Blood group is required." }),
   role: z.string().min(1, { message: "Role is required." }),
   branch: z.string().min(1, { message: "Branch is required." }),
   dateofLeaving: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date must be in YYYY-MM-DD format." }).optional(),
@@ -73,7 +74,6 @@ const formSchema = z.object({
   emergencyContactMobileNumberCountryCode: z.string().min(1, { message: "Emergency contact mobile number country code is required." }),
   emergencyContactMobileNumber: z.string().regex(/^\d{10}$/, { message: "Emergency contact mobile number must be 10 digits." }),
   emergencyContactPersonName: z.string().min(1, { message: "Emergency contact person name is required." }),
-  alternateMobileNumber: z.string().regex(/^\d{10}$/, { message: "Alternate mobile number must be 10 digits." }).optional(),
   finalInteractionPdfName: z.string().optional(),
   finalInteractionPdfUrl: z.string().url().optional(),
   active: z.boolean(),
@@ -187,7 +187,7 @@ export default function Employee_details() {
     <div className="container mx-auto p-4">
       <Card>
         <CardHeader>
-          <CardTitle>{isEditMode ? "Edit Employee" : "Employee Details"}</CardTitle>
+          <CardTitle>{"Employee Details"}</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -197,9 +197,9 @@ export default function Employee_details() {
                   <AvatarImage src={employee.profileUrl} alt={`${employee.firstName} ${employee.lastName}`} />
                   <AvatarFallback>{employee.firstName[0]}{employee.lastName[0]}</AvatarFallback>
                 </Avatar>
-                {!isEditMode && (
+                {/* {!isEditMode && (
                   <Button onClick={() => setIsEditMode(true)}>Edit</Button>
-                )}
+                )} */}
               </div>
 
               <Tabs defaultValue="personal" className="w-full">
@@ -240,7 +240,7 @@ export default function Employee_details() {
                     />
                     <FormField
                       control={form.control}
-                      name="email"
+                      name="personalEmail"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Email</FormLabel>
@@ -319,7 +319,7 @@ export default function Employee_details() {
                     />
                     <FormField
                       control={form.control}
-                      name="bloodgroup"
+                      name="bloodGroup"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Blood Group</FormLabel>
@@ -332,7 +332,7 @@ export default function Employee_details() {
                     />
                     <FormField
                       control={form.control}
-                      name="mobilenumber"
+                      name="mobileNumber"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Mobile Number</FormLabel>
@@ -345,7 +345,7 @@ export default function Employee_details() {
                     />
                     <FormField
                       control={form.control}
-                      name="alternatemobilenumber"
+                      name="alternateMobileNumber"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Alternate Mobile Number</FormLabel>
@@ -573,7 +573,7 @@ export default function Employee_details() {
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="employee_id"
+                      name="userId"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Employee Id</FormLabel>
@@ -599,7 +599,7 @@ export default function Employee_details() {
                     />
                      <FormField
                       control={form.control}
-                      name="userRole"
+                      name="role"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Role</FormLabel>
@@ -677,7 +677,7 @@ export default function Employee_details() {
                     />
                     <FormField
                       control={form.control}
-                      name="joiningDate"
+                      name="dateOfJoining"
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
                           <FormLabel>Joining Date</FormLabel>

@@ -13,6 +13,16 @@ import { useUser } from "@/layout/Header";
 import ProjectCard from "@/components/ui/project-card";
 import Loading from "@/components/ui/loading";
 import * as XLSX from "xlsx";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import DatePicker from "@/components/ui/date-picker";
 
 interface Project {
   projectId: string;
@@ -29,6 +39,122 @@ interface Project {
   projectManager: string;
   projectManagerProfile: string;
 }
+
+const ProjectOnboarding = ({ onProjectAdded }: { onProjectAdded: () => void }) => {
+  const [formData, setFormData] = useState({
+    projectCode: '',
+    projectName: '',
+    subProject: [],
+    projectType: '',
+    startDate: null,
+    estimatedEndDate: null,
+  });
+  const [open, setOpen] = useState(false);
+
+  const handleInputChange = (name: string, value: string | string[] | Date | null) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await api.post('/api/v1/project/create', formData);
+      if (response.data.success) {
+        setOpen(false);
+        onProjectAdded();
+        // Reset form
+        setFormData({
+          projectCode: '',
+          projectName: '',
+          subProject: [],
+          projectType: '',
+          startDate: null,
+          estimatedEndDate: null,
+        });
+      } else {
+        console.error('Failed to create project:', response.data.message);
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Add New Project</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Add New Project</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="projectCode">Project Code</Label>
+            <Input
+              id="projectCode"
+              value={formData.projectCode}
+              onChange={(e) => handleInputChange('projectCode', e.target.value)}
+              placeholder="Enter project code"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="projectName">Project Name</Label>
+            <Input
+              id="projectName"
+              value={formData.projectName}
+              onChange={(e) => handleInputChange('projectName', e.target.value)}
+              placeholder="Enter project name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="subProject">Sub Project</Label>
+            <Select
+              onValueChange={(value) => handleInputChange('subProject', value.split(','))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select sub projects" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sub1,sub2,sub3">Sub 1, Sub 2, Sub 3</SelectItem>
+                <SelectItem value="sub4,sub5">Sub 4, Sub 5</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="projectType">Project Type</Label>
+            <Select onValueChange={(value) => handleInputChange('projectType', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select project type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Client">Client</SelectItem>
+                <SelectItem value="Internal">Internal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="startDate">Start Date</Label>
+            <DatePicker
+              id="startDate"
+              selected={formData.startDate}
+              onSelect={(date) => handleInputChange('startDate', date)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="estimatedEndDate">Estimated End Date</Label>
+            <DatePicker
+              id="estimatedEndDate"
+              selected={formData.estimatedEndDate}
+              onSelect={(date) => handleInputChange('estimatedEndDate', date)}
+            />
+          </div>
+          <Button type="submit">Submit</Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const Projects = () => {
   const { userDetails } = useUser();
@@ -100,8 +226,6 @@ const Projects = () => {
     }
   };
 
-  //export
-   
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredProjects.map(proj => ({
       "Project Code": proj.projectCode,
@@ -121,7 +245,6 @@ const Projects = () => {
     XLSX.writeFile(workbook, "projects.xlsx");
   };
 
-
   const columns = [
     {
       header: "Project Code",
@@ -136,11 +259,11 @@ const Projects = () => {
       width: "25%",
     },
     {
-        header: "Sub Projects",
-        accessor: "projectName",
-        sortable: true,
-        width: "25%",
-      },
+      header: "Sub Projects",
+      accessor: "projectName",
+      sortable: true,
+      width: "25%",
+    },
     {
       header: "Project Type",
       accessor: "projectType",
@@ -148,16 +271,16 @@ const Projects = () => {
       width: "15%",
     },
     {
-        header: "Project Manager",
-        accessor: "projectName",
-        sortable: true,
-        width: "25%",
+      header: "Project Manager",
+      accessor: "projectName",
+      sortable: true,
+      width: "25%",
     },
     {
-        header: "Project Owner",
-        accessor: "projectName",
-        sortable: true,
-        width: "25%",
+      header: "Project Owner",
+      accessor: "projectName",
+      sortable: true,
+      width: "25%",
     },
     {
       header: "Status",
@@ -183,6 +306,7 @@ const Projects = () => {
     <div className="">
       <h1 className="text-2xl font-semibold mb-5">Projects</h1>
       <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 mb-4">
+        <ProjectOnboarding onProjectAdded={fetchProjects} />
         <Button onClick={clearFilter} className="w-fit sm:w-auto">
           Clear All Filters
         </Button>
