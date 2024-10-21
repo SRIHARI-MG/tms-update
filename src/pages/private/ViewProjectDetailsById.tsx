@@ -28,7 +28,7 @@ interface Project {
   projectManagerProfile: string;
 }
 
-const ViewProjectDetailsById = ({userId}:{userId?:string}) => {
+const ViewProjectDetailsById = ({ userId }: { userId?: string }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filters, setFilters] = useState({
     projectType: "all",
@@ -152,7 +152,6 @@ const ViewProjectDetailsById = ({userId}:{userId?:string}) => {
 
   return (
     <div className="">
-      <h1 className="text-2xl font-semibold mb-5">My Projects</h1>
       <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 mb-4">
         <Button onClick={clearFilter} className="w-fit sm:w-auto">
           Clear All Filters

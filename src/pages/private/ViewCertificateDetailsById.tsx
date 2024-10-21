@@ -1,72 +1,73 @@
-import React, { useEffect, useState } from "react"
-import DynamicTable from "@/components/ui/custom-table"
+import React, { useEffect, useState } from "react";
+import DynamicTable from "@/components/ui/custom-table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import api from "@/api/apiService"
-import { Button } from "@/components/ui/button"
-import Loading from "@/components/ui/loading"
-
+} from "@/components/ui/select";
+import api from "@/api/apiService";
+import { Button } from "@/components/ui/button";
+import Loading from "@/components/ui/loading";
 
 interface CertificateData {
-  certificateName: string
-  certificateUrl: string
-  credentialId: string
-  certificateNumber: string
-  description: string
-  certificatePdfName: string
-  certificatePdfUrl: string
-  employeeId: string
-  certificateId: string
+  certificateName: string;
+  certificateUrl: string;
+  credentialId: string;
+  certificateNumber: string;
+  description: string;
+  certificatePdfName: string;
+  certificatePdfUrl: string;
+  employeeId: string;
+  certificateId: string;
 }
 
-const Certificateslist = ({userId}:{userId?:string}) => {
-  const [certificates, setCertificates] = useState<CertificateData[]>([])
+const ViewCertificateDetailsById = ({ userId }: { userId?: string }) => {
+  const [certificates, setCertificates] = useState<CertificateData[]>([]);
   const [filters, setFilters] = useState({
     certificateType: "all",
-  })
-  const [isFetchingData, setIsFetchingData] = useState(false)
+  });
+  const [isFetchingData, setIsFetchingData] = useState(false);
 
   const fetchCertificates = async () => {
     try {
-      setIsFetchingData(true)
+      setIsFetchingData(true);
       const response = await api.get(
         `/api/v1/certificate/fetch-certificates-by-employeeId/${userId}`
-      )
-      setCertificates(response.data.response.data)
+      );
+      setCertificates(response.data.response.data);
     } catch (error) {
-      console.error("Error fetching certificates:", error)
+      console.error("Error fetching certificates:", error);
     } finally {
-      setIsFetchingData(false)
+      setIsFetchingData(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchCertificates()
-  }, [userId])
+    fetchCertificates();
+  }, [userId]);
 
-  const certificateTypes = [...new Set(certificates.map((cert) => cert.certificateName))]
+  const certificateTypes = [
+    ...new Set(certificates.map((cert) => cert.certificateName)),
+  ];
 
   const filteredCertificates = certificates.filter((cert) => {
     return (
       filters.certificateType === "all" ||
       cert.certificateName === filters.certificateType
-    )
-  })
+    );
+  });
 
   const clearFilter = () => {
     setFilters({
       certificateType: "all",
-    })
-  }
+    });
+  };
 
   const handleFilterChange = (value: string) => {
-    setFilters((prev) => ({ ...prev, certificateType: value }))
-  }
+    setFilters((prev) => ({ ...prev, certificateType: value }));
+  };
 
   const columns = [
     {
@@ -93,10 +94,10 @@ const Certificateslist = ({userId}:{userId?:string}) => {
       sortable: true,
       width: "35%",
     },
-  ]
+  ];
 
   if (isFetchingData) {
-    return <Loading />
+    return <Loading />;
   }
 
   return (
@@ -131,14 +132,23 @@ const Certificateslist = ({userId}:{userId?:string}) => {
           itemsPerPage={10}
           onClickView={(certificate) => (
             <div className="p-4 bg-white rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-2">{certificate.certificateName}</h2>
-              <p><strong>Credential ID:</strong> {certificate.credentialId}</p>
-              <p><strong>Certificate Number:</strong> {certificate.certificateNumber}</p>
-              <p><strong>Description:</strong> {certificate.description}</p>
+              <h2 className="text-xl font-semibold mb-2">
+                {certificate.certificateName}
+              </h2>
+              <p>
+                <strong>Credential ID:</strong> {certificate.credentialId}
+              </p>
+              <p>
+                <strong>Certificate Number:</strong>{" "}
+                {certificate.certificateNumber}
+              </p>
+              <p>
+                <strong>Description:</strong> {certificate.description}
+              </p>
               {certificate.certificatePdfUrl && (
-                <a 
-                  href={certificate.certificatePdfUrl} 
-                  target="_blank" 
+                <a
+                  href={certificate.certificatePdfUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline mt-2 inline-block"
                 >
@@ -150,7 +160,7 @@ const Certificateslist = ({userId}:{userId?:string}) => {
         />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Certificateslist
+export default ViewCertificateDetailsById;

@@ -24,12 +24,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/layout/Header";
 import Loading from "@/components/ui/loading";
 
-export default function BankDetailsSection() {
-  const { userDetails } = useUser();
-  const userId = userDetails?.userId;
+export default function BankDetailsSection({ userId }: { userId: string }) {
   const [isEditing, setIsEditing] = useState(false);
   const [bankDetails, setBankDetails] = useState({
     userId: "",
@@ -47,6 +44,11 @@ export default function BankDetailsSection() {
   const [tempFileUrl, setTempFileUrl] = useState<string | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    setUserRole(localStorage.getItem("role") || "");
+  });
 
   useEffect(() => {
     fetchBankDetails();
@@ -67,18 +69,33 @@ export default function BankDetailsSection() {
         `/api/v1/bankDetails/fetch-bank-details-by-employeeId/${userId}`
       );
       if (response.data.status === "OK") {
-        const { data } = response.data.response;
-        const details = {
-          userId: data.employeeId || "",
-          accountHolderName: data.accountHolderName || "",
-          accountNumber: data.accountNumber || "",
-          ifscCode: data.ifscCode || "",
-          branchName: data.branchName || "",
-          bankName: data.bankName || "",
-          chequeProofUrl: data.chequeProofUrl || "",
-        };
-        setBankDetails(details);
-        setOriginalBankDetails(details);
+        if (response.data.message === "No bank details Found for the user.") {
+          // Set empty bank details
+          const emptyDetails = {
+            userId: userId,
+            accountHolderName: "",
+            accountNumber: "",
+            ifscCode: "",
+            branchName: "",
+            bankName: "",
+            chequeProofUrl: "",
+          };
+          setBankDetails(emptyDetails);
+          setOriginalBankDetails(emptyDetails);
+        } else {
+          const { data } = response.data.response;
+          const details = {
+            userId: data.employeeId || "",
+            accountHolderName: data.accountHolderName || "",
+            accountNumber: data.accountNumber || "",
+            ifscCode: data.ifscCode || "",
+            branchName: data.branchName || "",
+            bankName: data.bankName || "",
+            chequeProofUrl: data.chequeProofUrl || "",
+          };
+          setBankDetails(details);
+          setOriginalBankDetails(details);
+        }
       }
     } catch (err) {
       setError("Failed to fetch bank details");
@@ -186,6 +203,18 @@ export default function BankDetailsSection() {
     );
   };
 
+  const getPlaceholder = (key: string) => {
+    const placeholders: { [key: string]: string } = {};
+    return (
+      placeholders[key] ||
+      `Enter ${key
+        .replace(/([A-Z])/g, " $1")
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")}`
+    );
+  };
+
   if (isLoading) {
     return <Loading />;
   }
@@ -196,50 +225,52 @@ export default function BankDetailsSection() {
 
   return (
     <div className="space-y-6 ">
-      <div className="flex justify-end space-x-2">
-        <Button
-          onClick={toggleEdit}
-          size="sm"
-          variant={isEditing ? "outline" : "default"}
-        >
-          {isEditing ? (
-            <>
-              <X className="mr-2 h-4 w-4" />
-              Cancel
-            </>
-          ) : (
-            <>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </>
+      {userRole !== "ROLE_HR" && (
+        <div className="flex justify-end space-x-2">
+          <Button
+            onClick={toggleEdit}
+            size="sm"
+            variant={isEditing ? "outline" : "default"}
+          >
+            {isEditing ? (
+              <>
+                <X className="mr-2 h-4 w-4" />
+                Cancel
+              </>
+            ) : (
+              <>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </>
+            )}
+          </Button>
+          {isEditing && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm">
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Request to Approval
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Approval Request</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to submit this bank details update
+                    request for approval?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleRequestApproval}>
+                    Confirm
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
-        </Button>
-        {isEditing && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm">
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Request to Approval
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Approval Request</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to submit this bank details update
-                  request for approval?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleRequestApproval}>
-                  Confirm
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {Object.entries(bankDetails).map(([key, value]) => (
@@ -309,7 +340,7 @@ export default function BankDetailsSection() {
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">
-                  {value && (
+                  {value ? (
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="outline">
@@ -332,6 +363,10 @@ export default function BankDetailsSection() {
                         </div>
                       </DialogContent>
                     </Dialog>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">
+                      No preview available
+                    </p>
                   )}
                 </div>
               )
@@ -340,12 +375,15 @@ export default function BankDetailsSection() {
                 id={key}
                 value={value}
                 onChange={(e) => handleInputChange(key, e.target.value)}
-                readOnly={!isEditing || key === "userId"}
+                readOnly={
+                  !isEditing || key === "userId" || userRole === "ROLE_HR"
+                }
                 className={`${
-                  !isEditing || key === "userId"
+                  !isEditing || key === "userId" || userRole === "ROLE_HR"
                     ? "bg-primary/5 text-gray-700"
                     : ""
                 }`}
+                placeholder={getPlaceholder(key)}
               />
             )}
           </div>

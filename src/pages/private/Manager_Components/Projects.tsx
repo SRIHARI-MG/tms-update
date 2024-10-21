@@ -42,7 +42,9 @@ const Projects = () => {
   const fetchProjects = async () => {
     try {
       setIsFetchingData(true);
-      const response = await api.get("/api/v1/project/get-all-projects-of-manager/MG180328");
+      const response = await api.get(
+        "/api/v1/project/get-all-projects-of-manager/MG180328"
+      );
       setProjects(response.data.response.data);
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -101,26 +103,27 @@ const Projects = () => {
   };
 
   //export
-   
+
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredProjects.map(proj => ({
-      "Project Code": proj.projectCode,
-      "Project Name": proj.projectName,
-      "Project Description": proj.projectDescription,
-      "Start Date": proj.startDate,
-      "Estimated End Date": proj.estimatedEndDate,
-      "Project Type": proj.projectType,
-      "Utilization Percentage": proj.utilizationPercentage,
-      "Project Status": proj.projectStatus,
-      "Project Owner": proj.projectOwner,
-      "Project Manager": proj.projectManager,
-    })));
+    const worksheet = XLSX.utils.json_to_sheet(
+      filteredProjects.map((proj) => ({
+        "Project Code": proj.projectCode,
+        "Project Name": proj.projectName,
+        "Project Description": proj.projectDescription,
+        "Start Date": proj.startDate,
+        "Estimated End Date": proj.estimatedEndDate,
+        "Project Type": proj.projectType,
+        "Utilization Percentage": proj.utilizationPercentage,
+        "Project Status": proj.projectStatus,
+        "Project Owner": proj.projectOwner,
+        "Project Manager": proj.projectManager,
+      }))
+    );
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Projects");
     XLSX.writeFile(workbook, "projects.xlsx");
   };
-
 
   const columns = [
     {
@@ -136,11 +139,11 @@ const Projects = () => {
       width: "25%",
     },
     {
-        header: "Sub Projects",
-        accessor: "projectName",
-        sortable: true,
-        width: "25%",
-      },
+      header: "Sub Projects",
+      accessor: "projectName",
+      sortable: true,
+      width: "25%",
+    },
     {
       header: "Project Type",
       accessor: "projectType",
@@ -148,16 +151,16 @@ const Projects = () => {
       width: "15%",
     },
     {
-        header: "Project Manager",
-        accessor: "projectName",
-        sortable: true,
-        width: "25%",
+      header: "Project Manager",
+      accessor: "projectName",
+      sortable: true,
+      width: "25%",
     },
     {
-        header: "Project Owner",
-        accessor: "projectName",
-        sortable: true,
-        width: "25%",
+      header: "Project Owner",
+      accessor: "projectName",
+      sortable: true,
+      width: "25%",
     },
     {
       header: "Status",

@@ -18,7 +18,6 @@ import Loading from "@/components/ui/loading";
 import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
 
-
 interface Employee {
   profileUrl: string;
   userId: string;
@@ -32,7 +31,6 @@ interface Employee {
   skills: string[];
   userProjects: string[];
   reportingManagerName: string;
-  
 }
 
 interface UserDetails {
@@ -175,24 +173,25 @@ const Employees = () => {
 
   //export
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredEmployees.map(emp => ({
-      "First Name": emp.firstName,
-      "Role": emp.role,
-      "Designation": emp.designation,
-      "Skills": emp.skills.join(", "),
-      "Branch": emp.branch,
-    })));
-  
+    const worksheet = XLSX.utils.json_to_sheet(
+      filteredEmployees.map((emp) => ({
+        "First Name": emp.firstName,
+        Role: emp.role,
+        Designation: emp.designation,
+        Skills: emp.skills.join(", "),
+        Branch: emp.branch,
+      }))
+    );
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Employees");
-  
+
     XLSX.writeFile(workbook, "employees.xlsx");
   };
-  
+
   // Update handleExport to only call exportToExcel
   const handleExport = () => {
     exportToExcel();
-    
   };
 
   const columns = [
@@ -222,7 +221,7 @@ const Employees = () => {
       filterable: true,
       accessor: (item: Employee) => (
         <div className="flex flex-wrap gap-1">
-          {item.skills.map((skill, index) => (
+          {item.skills?.map((skill, index) => (
             <span
               key={index}
               className="bg-primary/20 text-primary text-xs px-2 py-1 rounded"
@@ -235,12 +234,12 @@ const Employees = () => {
       width: "35%",
     },
     {
-        header: "Branch",
-        accessor: "branch",
-        sortable: true,
-        filterable: true,
-        width: "10%",
-      }
+      header: "Branch",
+      accessor: "branch",
+      sortable: true,
+      filterable: true,
+      width: "10%",
+    },
     // {
     //   header: "Contact",
     //   accessor: (item: Employee) => (
@@ -398,10 +397,9 @@ const Employees = () => {
             className=" w-full"
           />
         </div>
-        <Button onClick={handleExport} className="mr-2">Export</Button>
-
-       
-     
+        <Button onClick={handleExport} className="mr-2">
+          Export
+        </Button>
       </div>
 
       <div className="overflow-x-auto">
@@ -417,5 +415,3 @@ const Employees = () => {
 };
 
 export default Employees;
-
-

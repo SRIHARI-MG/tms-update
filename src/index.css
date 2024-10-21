@@ -62,7 +62,12 @@ html body {
 
   /* Auth layout specific theme */
   .auth-layout {
-    --gradient: linear-gradient(to top left, rgb(243, 191, 20), #0d6a9f, #2596be);
+    --gradient: linear-gradient(
+      to top left,
+      rgb(243, 191, 20),
+      #0d6a9f,
+      #2596be
+    );
     --background: 255 100% 100%; /* Set auth background to white */
     --foreground: 204 30% 10%;
     --muted: 204 20% 92%;
@@ -109,4 +114,18 @@ html body {
   animation-name: float;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--primary));
+  border-radius: 10px;
 }

@@ -33,6 +33,7 @@ import DatePicker from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { z } from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PlusCircle, PlusIcon } from "lucide-react";
 
 interface BankDetail {
   bankDetailsId: number;
@@ -80,7 +81,8 @@ interface UserDetails {
   reportingManagerId: string;
   reportingMangerName: string;
   reportingManagerEmail: string;
-  skills: string[];
+  primarySkills: string[];
+  secondarySkills: string[];
   userRole: string | null;
   currentAddressLine1: string;
   currentAddressLine2: string;
@@ -128,7 +130,8 @@ const OnDutyEmployees = () => {
   const [filters, setFilters] = useState({
     role: "all",
     designation: "all",
-    skill: "all",
+    primarySkill: "all",
+    secondarySkill: "all",
     branch: "all",
     department: "all",
   });
@@ -235,8 +238,15 @@ const OnDutyEmployees = () => {
       designations: [
         ...new Set(employees.map((emp) => emp.designation).filter(Boolean)),
       ],
-      skills: [
-        ...new Set(employees.flatMap((emp) => emp.skills).filter(Boolean)),
+      primarySkills: [
+        ...new Set(
+          employees.flatMap((emp) => emp.primarySkills).filter(Boolean)
+        ),
+      ],
+      secondarySkills: [
+        ...new Set(
+          employees.flatMap((emp) => emp.secondarySkills).filter(Boolean)
+        ),
       ],
       branches: [
         ...new Set(employees.map((emp) => emp.branch).filter(Boolean)),
@@ -259,7 +269,10 @@ const OnDutyEmployees = () => {
         (filters.role === "all" || emp.role === filters.role) &&
         (filters.designation === "all" ||
           emp.designation === filters.designation) &&
-        (filters.skill === "all" || emp.skills?.includes(filters.skill)) &&
+        (filters.primarySkill === "all" ||
+          emp.primarySkills?.includes(filters.primarySkill)) &&
+        (filters.secondarySkill === "all" ||
+          emp.secondarySkills?.includes(filters.secondarySkill)) &&
         (filters.branch === "all" || emp.branch === filters.branch) &&
         (filters.department === "all" || emp.department === filters.department)
       );
@@ -270,7 +283,8 @@ const OnDutyEmployees = () => {
     setFilters({
       role: "all",
       designation: "all",
-      skill: "all",
+      primarySkill: "all",
+      secondarySkill: "all",
       branch: "all",
       department: "all",
     });
@@ -376,10 +390,10 @@ const OnDutyEmployees = () => {
       width: "10%",
     },
     {
-      header: "Skills",
+      header: "Primary Skills",
       accessor: (employee: UserDetails) => (
         <div className="flex flex-wrap gap-1">
-          {employee?.skills?.map((skill, index) => (
+          {employee?.primarySkills?.map((skill, index) => (
             <span
               key={index}
               className="bg-primary/20 text-primary text-xs px-2 py-1 rounded"
@@ -390,7 +404,24 @@ const OnDutyEmployees = () => {
         </div>
       ),
       filterable: true,
-      width: "35%",
+      width: "20%",
+    },
+    {
+      header: "Secondary Skills",
+      accessor: (employee: UserDetails) => (
+        <div className="flex flex-wrap gap-1">
+          {employee?.secondarySkills?.map((skill, index) => (
+            <span
+              key={index}
+              className="bg-primary/20 text-primary text-xs px-2 py-1 rounded"
+            >
+              {skill}
+            </span>
+          ))}
+        </div>
+      ),
+      filterable: true,
+      width: "20%",
     },
     {
       header: "Reporting To",
@@ -534,15 +565,15 @@ const OnDutyEmployees = () => {
           </Select>
 
           <Select
-            onValueChange={(value) => handleFilterChange("skill", value)}
-            value={filters.skill}
+            onValueChange={(value) => handleFilterChange("primarySkill", value)}
+            value={filters.primarySkill}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Filter by Skill" />
+              <SelectValue placeholder="Filter by Primary Skill" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Skills</SelectItem>
-              {filterOptions.skills.map((skill) => (
+              <SelectItem value="all">All Primary Skills</SelectItem>
+              {filterOptions.primarySkills.map((skill) => (
                 <SelectItem key={skill} value={skill as string}>
                   {skill}
                 </SelectItem>
@@ -550,6 +581,24 @@ const OnDutyEmployees = () => {
             </SelectContent>
           </Select>
 
+          <Select
+            onValueChange={(value) =>
+              handleFilterChange("secondarySkill", value)
+            }
+            value={filters.secondarySkill}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Filter by Secondary Skill" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Secondary Skills</SelectItem>
+              {filterOptions.secondarySkills.map((skill) => (
+                <SelectItem key={skill} value={skill as string}>
+                  {skill}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select
             onValueChange={(value) => handleFilterChange("branch", value)}
             value={filters.branch}
@@ -594,6 +643,10 @@ const OnDutyEmployees = () => {
             className="w-full"
           />
         </div>
+        <Button onClick={() => navigate("/hr/employee-hub/onboard-employee")}>
+          <PlusCircle className="w-4 h-4 mr-2" />
+          Onboard Employee
+        </Button>
       </div>
 
       <div className="overflow-x-auto">

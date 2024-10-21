@@ -1,79 +1,172 @@
-import React, { useState, useEffect } from "react"
-import { useLocation, useParams } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import WorkspaceMyProjects from "../Employee_Components/Workspace/WorkspaceMyProjects"
-import Certificates from "../Certificateslist"
-import ViewProjectDetailsById from "../ViewProjectDetailsById"
+import React, { useState, useEffect } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import Certificates from "../ViewCertificateDetailsById";
+import ViewProjectDetailsById from "../ViewProjectDetailsById";
 
 const formSchema = z.object({
   employee_id: z.string().uuid(),
   profileUrl: z.string().url().optional(),
-  firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
-  lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
+  firstName: z
+    .string()
+    .min(2, { message: "First name must be at least 2 characters." }),
+  lastName: z
+    .string()
+    .min(2, { message: "Last name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
-  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date must be in YYYY-MM-DD format." }),
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+    message: "Date must be in YYYY-MM-DD format.",
+  }),
   gender: z.string().min(1, { message: "Please select a gender." }),
   designation: z.string().min(1, { message: "Designation is required." }),
   position: z.string().min(1, { message: "Position is required." }),
-  joiningDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date must be in YYYY-MM-DD format." }),
+  joiningDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+    message: "Date must be in YYYY-MM-DD format.",
+  }),
   salary: z.number().positive({ message: "Salary must be a positive number." }),
-  mobilenumber: z.number().int().positive().gte(1000000000).lte(9999999999, { message: "Mobile number must be 10 digits." }),
-  alternatemobilenumber: z.number().int().positive().gte(1000000000).lte(9999999999, { message: "Alternate mobile number must be 10 digits." }).optional(),
+  mobilenumber: z
+    .number()
+    .int()
+    .positive()
+    .gte(1000000000)
+    .lte(9999999999, { message: "Mobile number must be 10 digits." }),
+  alternatemobilenumber: z
+    .number()
+    .int()
+    .positive()
+    .gte(1000000000)
+    .lte(9999999999, { message: "Alternate mobile number must be 10 digits." })
+    .optional(),
   bloodgroup: z.string().min(1, { message: "Blood group is required." }),
   role: z.string().min(1, { message: "Role is required." }),
   branch: z.string().min(1, { message: "Branch is required." }),
-  dateofLeaving: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date must be in YYYY-MM-DD format." }).optional(),
+  dateofLeaving: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: "Date must be in YYYY-MM-DD format.",
+    })
+    .optional(),
   projects: z.array(z.string()),
   countryCode: z.string().min(1, { message: "Country code is required." }),
   reportingManagerId: z.string().uuid().nullable(),
-  reportingMangerName: z.string().min(1, { message: "Reporting manager name is required." }).nullable(),
+  reportingMangerName: z
+    .string()
+    .min(1, { message: "Reporting manager name is required." })
+    .nullable(),
   skills: z.array(z.string()),
-  employmentType: z.string().min(1, { message: "Employment type is required." }),
-  internshipEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date must be in YYYY-MM-DD format." }).optional(),
-  internshipDuration: z.string().min(1, { message: "Internship duration is required." }).optional(),
-  primaryProject: z.string().min(1, { message: "Primary project is required." }),
+  employmentType: z
+    .string()
+    .min(1, { message: "Employment type is required." }),
+  internshipEndDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: "Date must be in YYYY-MM-DD format.",
+    })
+    .optional(),
+  internshipDuration: z
+    .string()
+    .min(1, { message: "Internship duration is required." })
+    .optional(),
+  primaryProject: z
+    .string()
+    .min(1, { message: "Primary project is required." }),
   shiftTiming: z.string().min(1, { message: "Shift timing is required." }),
-  willingToTravel: z.string().min(1, { message: "Willingness to travel is required." }),
-  reportingManagerEmail: z.string().email({ message: "Invalid reporting manager email address." }),
+  willingToTravel: z
+    .string()
+    .min(1, { message: "Willingness to travel is required." }),
+  reportingManagerEmail: z
+    .string()
+    .email({ message: "Invalid reporting manager email address." }),
   offboardingReason: z.string().optional(),
   revokeReason: z.string().optional(),
   department: z.string().min(1, { message: "Department is required." }),
-  currentAddressLine1: z.string().min(1, { message: "Current address line 1 is required." }),
+  currentAddressLine1: z
+    .string()
+    .min(1, { message: "Current address line 1 is required." }),
   currentAddressLine2: z.string().optional(),
   currentAddressLandmark: z.string().optional(),
-  currentAddressNationality: z.string().min(1, { message: "Current address nationality is required." }),
-  currentAddressZipcode: z.string().regex(/^\d+$/, { message: "Zipcode must contain only numbers." }),
-  currentAddressState: z.string().min(1, { message: "Current address state is required." }),
-  currentAddressDistrict: z.string().min(1, { message: "Current address district is required." }),
-  permanentAddressLine1: z.string().min(1, { message: "Permanent address line 1 is required." }),
+  currentAddressNationality: z
+    .string()
+    .min(1, { message: "Current address nationality is required." }),
+  currentAddressZipcode: z
+    .string()
+    .regex(/^\d+$/, { message: "Zipcode must contain only numbers." }),
+  currentAddressState: z
+    .string()
+    .min(1, { message: "Current address state is required." }),
+  currentAddressDistrict: z
+    .string()
+    .min(1, { message: "Current address district is required." }),
+  permanentAddressLine1: z
+    .string()
+    .min(1, { message: "Permanent address line 1 is required." }),
   permanentAddressLine2: z.string().optional(),
   permanentAddressLandmark: z.string().optional(),
-  permanentAddressNationality: z.string().min(1, { message: "Permanent address nationality is required." }),
-  permanentAddressZipcode: z.string().regex(/^\d+$/, { message: "Zipcode must contain only numbers." }),
-  permanentAddressState: z.string().min(1, { message: "Permanent address state is required." }),
-  permanentAddressDistrict: z.string().min(1, { message: "Permanent address district is required." }),
-  alternateMobileNumberCountryCode: z.string().min(1, { message: "Alternate mobile number country code is required." }).optional(),
-  emergencyContactMobileNumberCountryCode: z.string().min(1, { message: "Emergency contact mobile number country code is required." }),
-  emergencyContactMobileNumber: z.string().regex(/^\d{10}$/, { message: "Emergency contact mobile number must be 10 digits." }),
-  emergencyContactPersonName: z.string().min(1, { message: "Emergency contact person name is required." }),
-  alternateMobileNumber: z.string().regex(/^\d{10}$/, { message: "Alternate mobile number must be 10 digits." }).optional(),
+  permanentAddressNationality: z
+    .string()
+    .min(1, { message: "Permanent address nationality is required." }),
+  permanentAddressZipcode: z
+    .string()
+    .regex(/^\d+$/, { message: "Zipcode must contain only numbers." }),
+  permanentAddressState: z
+    .string()
+    .min(1, { message: "Permanent address state is required." }),
+  permanentAddressDistrict: z
+    .string()
+    .min(1, { message: "Permanent address district is required." }),
+  alternateMobileNumberCountryCode: z
+    .string()
+    .min(1, { message: "Alternate mobile number country code is required." })
+    .optional(),
+  emergencyContactMobileNumberCountryCode: z.string().min(1, {
+    message: "Emergency contact mobile number country code is required.",
+  }),
+  emergencyContactMobileNumber: z.string().regex(/^\d{10}$/, {
+    message: "Emergency contact mobile number must be 10 digits.",
+  }),
+  emergencyContactPersonName: z
+    .string()
+    .min(1, { message: "Emergency contact person name is required." }),
+  alternateMobileNumber: z
+    .string()
+    .regex(/^\d{10}$/, {
+      message: "Alternate mobile number must be 10 digits.",
+    })
+    .optional(),
   finalInteractionPdfName: z.string().optional(),
   finalInteractionPdfUrl: z.string().url().optional(),
   active: z.boolean(),
@@ -81,9 +174,9 @@ const formSchema = z.object({
   currencyCode: z.string().min(1, { message: "Currency code is required." }),
   superAdmin: z.string().optional(),
   userRole: z.string().min(1, { message: "User role is required." }),
-})
+});
 
-type EmployeeType = z.infer<typeof formSchema>
+type EmployeeType = z.infer<typeof formSchema>;
 
 // const dummyEmployee: EmployeeType = {
 //   employee_id: "1",
@@ -149,53 +242,61 @@ type EmployeeType = z.infer<typeof formSchema>
 export default function Employee_details() {
   const { userId } = useParams();
   const location = useLocation();
-  const employee:EmployeeType = location.state.employeeDetails;
+  const employee: EmployeeType = location.state.employeeDetails;
   // const [employee, setEmployee] = useState<EmployeeType>(dummyEmployee)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<EmployeeType>({
     resolver: zodResolver(formSchema),
     defaultValues: employee,
-  })
-
- 
+  });
 
   const onSubmit = async (values: EmployeeType) => {
     try {
-      
-        const response = await fetch(`/api/employees/${userId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(values),
-        })
-        if (!response.ok) {
-          throw new Error('Failed to update employee data')
-        }
-        setIsEditMode(false)
-      
+      const response = await fetch(`/api/employees/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update employee data");
+      }
+      setIsEditMode(false);
     } catch (error) {
-      console.error("Error updating employee data:", error)
+      console.error("Error updating employee data:", error);
     }
-  }
+  };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
   }
 
   return (
     <div className="container mx-auto p-4">
       <Card>
         <CardHeader>
-          <CardTitle>{isEditMode ? "Edit Employee" : "Employee Details"}</CardTitle>
+          <CardTitle>
+            {isEditMode ? "Edit Employee" : "Employee Details"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="flex justify-between items-center">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={employee.profileUrl} alt={`${employee.firstName} ${employee.lastName}`} />
-                  <AvatarFallback>{employee.firstName[0]}{employee.lastName[0]}</AvatarFallback>
+                  <AvatarImage
+                    src={employee.profileUrl}
+                    alt={`${employee.firstName} ${employee.lastName}`}
+                  />
+                  <AvatarFallback>
+                    {employee.firstName[0]}
+                    {employee.lastName[0]}
+                  </AvatarFallback>
                 </Avatar>
                 {!isEditMode && (
                   <Button onClick={() => setIsEditMode(true)}>Edit</Button>
@@ -205,7 +306,9 @@ export default function Employee_details() {
               <Tabs defaultValue="personal" className="w-full">
                 <TabsList>
                   <TabsTrigger value="personal">Personal Details</TabsTrigger>
-                  <TabsTrigger value="professional">Professional Details</TabsTrigger>
+                  <TabsTrigger value="professional">
+                    Professional Details
+                  </TabsTrigger>
                   <TabsTrigger value="projects">Projects</TabsTrigger>
                   <TabsTrigger value="certificates">Certificates</TabsTrigger>
                 </TabsList>
@@ -245,7 +348,11 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="email" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="email"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -269,7 +376,7 @@ export default function Employee_details() {
                                   disabled={!isEditMode}
                                 >
                                   {field.value ? (
-                                    format(new  Date(field.value), "PPP")
+                                    format(new Date(field.value), "PPP")
                                   ) : (
                                     <span>Pick a date</span>
                                   )}
@@ -277,13 +384,25 @@ export default function Employee_details() {
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
                               <Calendar
                                 mode="single"
-                                selected={field.value ? new Date(field.value) : undefined}
-                                onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                                selected={
+                                  field.value
+                                    ? new Date(field.value)
+                                    : undefined
+                                }
+                                onSelect={(date) =>
+                                  field.onChange(
+                                    date ? format(date, "yyyy-MM-dd") : ""
+                                  )
+                                }
                                 disabled={(date) =>
-                                  date > new Date() || date < new Date("1900-01-01")
+                                  date > new Date() ||
+                                  date < new Date("1900-01-01")
                                 }
                                 initialFocus
                               />
@@ -299,7 +418,11 @@ export default function Employee_details() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Gender</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            disabled={!isEditMode}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select gender" />
@@ -337,7 +460,11 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Mobile Number</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="tel" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="tel"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -350,7 +477,11 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Alternate Mobile Number</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="tel" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="tel"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -376,7 +507,11 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Emergency Contact Number</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="tel" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="tel"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -409,7 +544,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="currentAddressLandmark"
                       render={({ field }) => (
@@ -422,7 +557,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="currentAddressNationality"
                       render={({ field }) => (
@@ -461,7 +596,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                      <FormField
+                    <FormField
                       control={form.control}
                       name="currentAddressDistrict"
                       render={({ field }) => (
@@ -501,7 +636,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="permanentAddressLandmark"
                       render={({ field }) => (
@@ -514,7 +649,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                      <FormField
+                    <FormField
                       control={form.control}
                       name="permanentAddressNationality"
                       render={({ field }) => (
@@ -527,7 +662,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="permanentAddressZipcode"
                       render={({ field }) => (
@@ -540,7 +675,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="permanentAddressState"
                       render={({ field }) => (
@@ -553,7 +688,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="permanentAddressDistrict"
                       render={({ field }) => (
@@ -597,7 +732,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="userRole"
                       render={({ field }) => (
@@ -610,7 +745,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="designation"
                       render={({ field }) => (
@@ -623,7 +758,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="department"
                       render={({ field }) => (
@@ -701,11 +836,22 @@ export default function Employee_details() {
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
                               <Calendar
                                 mode="single"
-                                selected={field.value ? new Date(field.value) : undefined}
-                                onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                                selected={
+                                  field.value
+                                    ? new Date(field.value)
+                                    : undefined
+                                }
+                                onSelect={(date) =>
+                                  field.onChange(
+                                    date ? format(date, "yyyy-MM-dd") : ""
+                                  )
+                                }
                                 disabled={(date) => date > new Date()}
                                 initialFocus
                               />
@@ -722,13 +868,17 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Reporting Manager</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="number" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="number"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="skills"
@@ -736,14 +886,18 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Skills</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              {...field} 
+                            <Textarea
+                              {...field}
                               disabled={!isEditMode}
                               value={field.value.join(", ")}
-                              onChange={(e) => field.onChange(e.target.value.split(", "))}
+                              onChange={(e) =>
+                                field.onChange(e.target.value.split(", "))
+                              }
                             />
                           </FormControl>
-                          <FormDescription>Enter skills separated by commas</FormDescription>
+                          <FormDescription>
+                            Enter skills separated by commas
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -754,7 +908,11 @@ export default function Employee_details() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Willing to Travel</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            disabled={!isEditMode}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select option" />
@@ -776,7 +934,11 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Salary</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="email" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="email"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -786,17 +948,22 @@ export default function Employee_details() {
                 </TabsContent>
 
                 <TabsContent value="projects">
-                <ViewProjectDetailsById userId={userId} />
+                  <ViewProjectDetailsById userId={userId} />
                 </TabsContent>
 
                 <TabsContent value="certificates">
-                 <Certificates userId={userId} />
+                  <Certificates userId={userId} />
                 </TabsContent>
               </Tabs>
 
               {isEditMode && (
                 <div className="flex justify-end space-x-4">
-                  <Button variant="outline" onClick={() => setIsEditMode(false)}>Cancel</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditMode(false)}
+                  >
+                    Cancel
+                  </Button>
                   <Button type="submit">Save Changes</Button>
                 </div>
               )}
