@@ -26,7 +26,7 @@ import api from "@/api/apiService"
 interface ProjectMember {
   projectMemberId: string
   projectId: string
-  subProject: string | null
+  subproject: string | null
   employeeId: string
   employeeName: string
   projectMemberEmail: string
@@ -104,6 +104,7 @@ export default function ProjectMembers() {
             <TableHead>Employee Name</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Sub Project</TableHead>
             <TableHead>Project Priority</TableHead>
             <TableHead>Working %</TableHead>
             <TableHead>Start Date</TableHead>
@@ -117,6 +118,7 @@ export default function ProjectMembers() {
               <TableCell>{member.employeeName}</TableCell>
               <TableCell>{member.memberRoleOnProject}</TableCell>
               <TableCell>{member.projectMemberEmail}</TableCell>
+              <TableCell>{member.subproject}</TableCell>
               <TableCell>{member.projectPriority}</TableCell>
               <TableCell>{member.projectWorkingPercentage}%</TableCell>
               <TableCell>{format(new Date(member.startDate), 'yyyy-MM-dd')}</TableCell>
@@ -164,6 +166,17 @@ export default function ProjectMembers() {
                             id="email"
                             value={editingMember?.projectMemberEmail}
                             onChange={(e) => setEditingMember({ ...editingMember!, projectMemberEmail: e.target.value })}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="email" className="text-right">
+                            Sub Project
+                          </Label>
+                          <Input
+                            id="subproject"
+                            value={editingMember?.subproject}
+                            onChange={(e) => setEditingMember({ ...editingMember!, subproject: e.target.value })}
                             className="col-span-3"
                           />
                         </div>

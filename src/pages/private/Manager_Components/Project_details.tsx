@@ -13,6 +13,7 @@ interface Project {
   projectId: string
   projectCode: string
   projectName: string
+  subproject: string
   projectDescription: string
   startDate: string
   estimatedEndDate: string
@@ -33,6 +34,7 @@ interface Project {
 const dummyProject: Project = {
   projectId: "PROJ_3",
   projectCode: "MG-HRMS-001",
+  subproject: "sub",
   projectName: "Talent Management System",
   projectDescription: "A comprehensive system for managing talent within the organization",
   startDate: "2024-01-13",
@@ -174,6 +176,16 @@ export default function Project_details() {
                       id="projectCode"
                       name="projectCode"
                       value={project.projectCode}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="projectType">Sub Project</Label>
+                    <Input
+                      id="subproject"
+                      name="subproject"
+                      value={project.subproject}
                       onChange={handleInputChange}
                       disabled={!isEditing}
                     />

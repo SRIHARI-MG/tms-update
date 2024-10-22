@@ -29,6 +29,7 @@ interface Project {
   projectOwnerProfile: string;
   projectManager: string;
   projectManagerProfile: string;
+  subproject: string;
 }
 
 const Projects = () => {
@@ -105,6 +106,7 @@ const Projects = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredProjects.map(proj => ({
       "Project Code": proj.projectCode,
       "Project Name": proj.projectName,
+      "Sub Project": proj.subproject,
       "Project Description": proj.projectDescription,
       "Start Date": proj.startDate,
       "Estimated End Date": proj.estimatedEndDate,
@@ -113,6 +115,7 @@ const Projects = () => {
       "Project Status": proj.projectStatus,
       "Project Owner": proj.projectOwner,
       "Project Manager": proj.projectManager,
+
     })));
 
     const workbook = XLSX.utils.book_new();
@@ -130,6 +133,12 @@ const Projects = () => {
     {
       header: "Project Name",
       accessor: "projectName",
+      sortable: true,
+      width: "25%",
+    },
+    {
+      header: "Sub Project",
+      accessor: "subproject",
       sortable: true,
       width: "25%",
     },
@@ -227,6 +236,7 @@ const Projects = () => {
             <ProjectCard
               projectCode={project.projectCode}
               projectName={project.projectName}
+              subproject={project.subproject}
               projectDescription={project.projectDescription}
               startDate={project.startDate}
               estimatedEndDate={project.estimatedEndDate}
