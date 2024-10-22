@@ -138,7 +138,7 @@ const Collaborate = () => {
       filterable: true,
       accessor: (item: Employee) => (
         <div className="flex flex-wrap gap-1">
-          {item.skills.map((skill, index) => (
+          {item.skills?.map((skill, index) => (
             <span
               key={index}
               className="bg-primary/20 text-primary text-xs px-2 py-1 rounded"
