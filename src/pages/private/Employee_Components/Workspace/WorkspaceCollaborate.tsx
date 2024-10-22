@@ -172,7 +172,7 @@ const WorkspaceCollaborate = () => {
           {employee?.secondarySkills?.map((skill, index) => (
             <span
               key={index}
-              className="bg-secondary/20 text-secondary text-xs px-2 py-1 rounded"
+              className="bg-primary/20 text-primary text-xs px-2 py-1 rounded"
             >
               {skill}
             </span>
@@ -236,7 +236,7 @@ const WorkspaceCollaborate = () => {
           Clear All Filters
         </Button>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Select
             onValueChange={(value) => handleFilterChange("role", value)}
             value={filters.role}
@@ -247,8 +247,8 @@ const WorkspaceCollaborate = () => {
             <SelectContent>
               <SelectItem value="all">All Roles</SelectItem>
               {filterOptions.roles.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {role}
+                <SelectItem key={role} value={role || "undefined"}>
+                  {role || "Undefined"}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -264,8 +264,11 @@ const WorkspaceCollaborate = () => {
             <SelectContent>
               <SelectItem value="all">All Designations</SelectItem>
               {filterOptions.designations.map((designation) => (
-                <SelectItem key={designation} value={designation}>
-                  {designation}
+                <SelectItem
+                  key={designation}
+                  value={designation || "undefined"}
+                >
+                  {designation || "Undefined"}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -281,8 +284,8 @@ const WorkspaceCollaborate = () => {
             <SelectContent>
               <SelectItem value="all">All Primary Skills</SelectItem>
               {filterOptions.primarySkills.map((skill) => (
-                <SelectItem key={skill} value={skill as string}>
-                  {skill}
+                <SelectItem key={skill} value={skill || "undefined"}>
+                  {skill || "Undefined"}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -300,8 +303,8 @@ const WorkspaceCollaborate = () => {
             <SelectContent>
               <SelectItem value="all">All Secondary Skills</SelectItem>
               {filterOptions.secondarySkills.map((skill) => (
-                <SelectItem key={skill} value={skill as string}>
-                  {skill}
+                <SelectItem key={skill} value={skill || "undefined"}>
+                  {skill || "Undefined"}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -317,8 +320,8 @@ const WorkspaceCollaborate = () => {
             <SelectContent>
               <SelectItem value="all">All Branches</SelectItem>
               {filterOptions.branches.map((branch) => (
-                <SelectItem key={branch} value={branch}>
-                  {branch}
+                <SelectItem key={branch} value={branch || "undefined"}>
+                  {branch || "Undefined"}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -334,8 +337,8 @@ const WorkspaceCollaborate = () => {
             <SelectContent>
               <SelectItem value="all">All Projects</SelectItem>
               {filterOptions.projects.map((project) => (
-                <SelectItem key={project} value={project}>
-                  {project}
+                <SelectItem key={project} value={project || "undefined"}>
+                  {project || "Undefined"}
                 </SelectItem>
               ))}
             </SelectContent>

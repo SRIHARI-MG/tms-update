@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import api from "@/api/apiService";
@@ -33,7 +32,14 @@ import DatePicker from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { z } from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PlusCircle, PlusIcon } from "lucide-react";
+import { Download, PlusCircle, PlusIcon } from "lucide-react";
+import * as XLSX from "xlsx";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { toast } from "@/hooks/use-toast";
 
 interface BankDetail {
   bankDetailsId: number;
@@ -162,6 +168,8 @@ const OnDutyEmployees = () => {
   const [alertValidationErrors, setAlertValidationErrors] = useState<
     z.ZodIssue[] | null
   >(null);
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+  const [selectedFields, setSelectedFields] = useState<string[]>([]);
 
   const handleOffboard = (employee: UserDetails) => {
     console.log("Offboarding employee:", employee);
@@ -355,7 +363,245 @@ const OnDutyEmployees = () => {
     }
   };
 
+  // Export Logic
+  const exportToExcel = (data: any[], fileName: string) => {
+    if (data.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "Please select employees to export",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Employees Data");
+    XLSX.writeFile(workbook, `${fileName}.xlsx`, {
+      bookType: "xlsx",
+      type: "array",
+    });
+  };
+
+  const handleExport = () => {
+    if (selectedFields.length === 0) {
+      toast({
+        title: "No fields selected",
+        description: "Please select at least one field to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedEmployees.length === 0) {
+      toast({
+        title: "No employees selected",
+        description: "Please select at least one employee to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const exportData = employees
+      .filter((emp) => selectedEmployees.includes(emp.userId))
+      .map((employee) => {
+        const filteredData: { [key: string]: any } = {};
+        selectedFields.forEach((field) => {
+          const keys = field.split(".");
+          let value = employee as any;
+          for (const key of keys) {
+            if (value && typeof value === "object" && key in value) {
+              value = value[key];
+            } else {
+              value = undefined;
+              break;
+            }
+          }
+          // Special handling for primarySkills and secondarySkills
+          if (field === "primarySkills" || field === "secondarySkills") {
+            value = Array.isArray(value) ? value.join(", ") : value;
+          }
+          filteredData[fieldDisplayNames[field] || field] = value;
+        });
+        return filteredData;
+      });
+
+    exportToExcel(exportData, "selected_employees_data");
+  };
+
+  const handleExportAll = () => {
+    if (selectedEmployees.length === 0) {
+      toast({
+        title: "No employees selected",
+        description: "Please select at least one employee to export all data.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Export all fields for selected employees
+    const exportData = employees
+      .filter((emp) => selectedEmployees.includes(emp.userId))
+      .map((employee) => {
+        const filteredData: { [key: string]: any } = {};
+        fieldsList.forEach((field) => {
+          const keys = field.split(".");
+          let value = employee as any;
+          for (const key of keys) {
+            if (value && typeof value === "object" && key in value) {
+              value = value[key];
+            } else {
+              value = undefined;
+              break;
+            }
+          }
+          // Special handling for primarySkills and secondarySkills
+          if (field === "primarySkills" || field === "secondarySkills") {
+            value = Array.isArray(value) ? value.join(", ") : value;
+          }
+          filteredData[fieldDisplayNames[field] || field] = value;
+        });
+        return filteredData;
+      });
+
+    if (exportData.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There is no data available for the selected employees.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    exportToExcel(exportData, "selected_employees_all_data");
+  };
+
+  const fieldsList = [
+    "userId",
+    "firstName",
+    "lastName",
+    "gender",
+    "email",
+    "personalEmail",
+    "mobileNumber",
+    "dateOfBirth",
+    "bloodGroup",
+    "department",
+    "role",
+    "designation",
+    "branch",
+    "reportingManagerName",
+    "reportingManagerEmail",
+    "dateOfJoining",
+    "primarySkills",
+    "secondarySkills",
+    "employmentType",
+    "internshipEndDate",
+    "internshipDuration",
+    "shiftTiming",
+    "willingToTravel",
+    "salary",
+    "alternateMobileNumber",
+    "emergencyContactPersonName",
+    "emergencyContactMobileNumber",
+    "currentAddress.addressLine1",
+    "currentAddress.addressLine2",
+    "currentAddress.landmark",
+    "currentAddress.nationality",
+    "currentAddress.zipcode",
+    "currentAddress.state",
+    "currentAddress.district",
+    "permanentAddress.addressLine1",
+    "permanentAddress.addressLine2",
+    "permanentAddress.landmark",
+    "permanentAddress.nationality",
+    "permanentAddress.zipcode",
+    "permanentAddress.state",
+    "permanentAddress.district",
+  ];
+
+  const fieldDisplayNames: { [key: string]: string } = {
+    userId: "User ID",
+    firstName: "First Name",
+    lastName: "Last Name",
+    gender: "Gender",
+    email: "Email",
+    personalEmail: "Personal Email",
+    mobileNumber: "Mobile Number",
+    dateOfBirth: "Date of Birth",
+    bloodGroup: "Blood Group",
+    department: "Department",
+    role: "Role",
+    designation: "Designation",
+    branch: "Branch",
+    reportingManagerName: "Reporting Manager Name",
+    reportingManagerEmail: "Reporting Manager Email",
+    dateOfJoining: "Date of Joining",
+    primarySkills: "Primary Skills",
+    secondarySkills: "Secondary Skills",
+    employmentType: "Employment Type",
+    internshipEndDate: "Internship End Date",
+    internshipDuration: "Internship Duration",
+    shiftTiming: "Shift Timing",
+    willingToTravel: "Willing to Travel",
+    salary: "Salary",
+    alternateMobileNumber: "Alternate Mobile Number",
+    emergencyContactPersonName: "Emergency Contact Person Name",
+    emergencyContactMobileNumber: "Emergency Contact Mobile Number",
+    "currentAddress.addressLine1": "Current Address Line 1",
+    "currentAddress.addressLine2": "Current Address Line 2",
+    "currentAddress.landmark": "Current Address Landmark",
+    "currentAddress.nationality": "Current Address Nationality",
+    "currentAddress.zipcode": "Current Address Zipcode",
+    "currentAddress.state": "Current Address State",
+    "currentAddress.district": "Current Address District",
+    "permanentAddress.addressLine1": "Permanent Address Line 1",
+    "permanentAddress.addressLine2": "Permanent Address Line 2",
+    "permanentAddress.landmark": "Permanent Address Landmark",
+    "permanentAddress.nationality": "Permanent Address Nationality",
+    "permanentAddress.zipcode": "Permanent Address Zipcode",
+    "permanentAddress.state": "Permanent Address State",
+    "permanentAddress.district": "Permanent Address District",
+  };
+
+  const handleCheckboxChange = (checked: boolean, userId: string) => {
+    setSelectedEmployees((prev) =>
+      checked ? [...prev, userId] : prev.filter((id) => id !== userId)
+    );
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedEmployees(filteredEmployees.map((emp) => emp.userId));
+    } else {
+      setSelectedEmployees([]);
+    }
+  };
+
+  const isAllSelected = selectedEmployees.length === filteredEmployees.length;
+  const isIndeterminate =
+    selectedEmployees.length > 0 &&
+    selectedEmployees.length < filteredEmployees.length;
+
   const columns = [
+    {
+      header: (
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox checked={isAllSelected} onCheckedChange={handleSelectAll} />
+        </div>
+      ),
+      accessor: (item: UserDetails) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={selectedEmployees.includes(item.userId)}
+            onCheckedChange={(checked: boolean) =>
+              handleCheckboxChange(checked, item.userId)
+            }
+          />
+        </div>
+      ),
+      width: "5%",
+    },
     {
       header: "Employee",
       accessor: (employee: UserDetails) => (
@@ -404,7 +650,7 @@ const OnDutyEmployees = () => {
         </div>
       ),
       filterable: true,
-      width: "20%",
+      width: "25%",
     },
     {
       header: "Secondary Skills",
@@ -469,7 +715,7 @@ const OnDutyEmployees = () => {
           </a>
         </div>
       ),
-      width: "6%",
+      width: "20%",
     },
     {
       header: "Action",
@@ -529,7 +775,7 @@ const OnDutyEmployees = () => {
           Clear All Filters
         </Button>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Select
             onValueChange={(value) => handleFilterChange("role", value)}
             value={filters.role}
@@ -643,6 +889,50 @@ const OnDutyEmployees = () => {
             className="w-full"
           />
         </div>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button>
+              <Download className="w-4 h-4 mr-2" /> Export
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <div className="space-y-4">
+              <h3 className="font-medium">Export Options:</h3>
+              <Button onClick={handleExportAll} className="w-full mb-2">
+                Export All Data
+              </Button>
+              <h3 className="font-medium">Or Select Fields to Export:</h3>
+              <div className="max-h-60 overflow-y-auto space-y-2">
+                {fieldsList.map((field) => (
+                  <div key={field} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={field}
+                      checked={selectedFields.includes(field)}
+                      onCheckedChange={(checked) => {
+                        setSelectedFields((prev) =>
+                          checked
+                            ? [...prev, field]
+                            : prev.filter((f) => f !== field)
+                        );
+                      }}
+                    />
+                    <label
+                      htmlFor={field}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {fieldDisplayNames[field] || field}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <Button onClick={handleExport} className="w-full">
+                Export Selected Data
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+
         <Button onClick={() => navigate("/hr/employee-hub/onboard-employee")}>
           <PlusCircle className="w-4 h-4 mr-2" />
           Onboard Employee

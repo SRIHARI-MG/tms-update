@@ -27,7 +27,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 interface Column<T> {
-  header: string;
+  header: string | React.ReactNode;
   accessor: keyof T | ((item: T) => React.ReactNode);
   sortAccessor?: (item: T) => any;
   className?: string;
@@ -73,7 +73,7 @@ export default function DynamicTable<T>({
         result = result.filter((item) =>
           String(item?.[key as keyof T] ?? "")
             .toLowerCase()
-            .includes(value.toLowerCase())
+            .includes(value?.toLowerCase() ?? "")
         );
       }
     });
