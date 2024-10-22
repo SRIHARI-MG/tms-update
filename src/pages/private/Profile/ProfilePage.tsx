@@ -59,6 +59,7 @@ interface UserDetails {
   reportingManagerId?: string;
   reportingMangerName?: string;
   reportingManagerEmail?: string;
+  skills?: string[];
   primarySkills?: string[];
   secondarySkills?: string[];
   employmentType?: string;
@@ -110,7 +111,7 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { userDetails } = useUser();
-  const { updateUserDetails } = useUserActions();
+  const { updateUserDetails, fetchUserDetails } = useUserActions();
   const [selectedNav, setSelectedNav] = useState("Profile Details");
   const [isEditing, setIsEditing] = useState(false);
   const [editedDetails, setEditedDetails] = useState<any>({});
@@ -353,6 +354,18 @@ export default function ProfilePage() {
     try {
       let payload = new FormData();
 
+      // Transform skills into the required format
+      const transformedSkills = [
+        ...(editedDetails.primarySkills || []).map((skill) => ({
+          skill,
+          priority: 1,
+        })),
+        ...(editedDetails.secondarySkills || []).map((skill) => ({
+          skill,
+          priority: 2,
+        })),
+      ];
+
       // Create the requestedData object
       const updatedProfileData: Partial<UserDetails> = {
         userId: editedDetails.userId,
@@ -367,8 +380,7 @@ export default function ProfilePage() {
           editedDetails.alternateMobileNumberCountryCode,
         personalEmail: editedDetails.personalEmail,
         mobileNumber: editedDetails.mobileNumber,
-        primarySkills: editedDetails.primarySkills,
-        secondarySkills: editedDetails.secondarySkills,
+        skills: transformedSkills,
         willingToTravel: editedDetails.willingToTravel,
         employmentType: editedDetails.employmentType,
         shiftTiming: editedDetails.shiftTiming,
@@ -417,6 +429,8 @@ export default function ProfilePage() {
 
       console.log("Profile update response:", response);
       updateUserDetails(response.data.response.data);
+      // Call fetch-user-info API after successful update
+      await fetchUserDetails();
 
       // Handle success (e.g., show a success message, update local state)
     } catch (error) {
@@ -571,7 +585,9 @@ export default function ProfilePage() {
                 {isEditing && (
                   <Button onClick={handleRequestApproval} size="sm">
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    Request for Approval
+                    {userRole === "ROLE_HR"
+                      ? "Update Profile"
+                      : "Request for Approval"}
                   </Button>
                 )}
               </div>

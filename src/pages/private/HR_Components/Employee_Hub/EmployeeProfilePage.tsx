@@ -70,6 +70,7 @@ interface UserDetails {
   alternateMobileNumber: string;
   finalInteractionPdfName: string;
   finalInteractionPdfUrl: string;
+  dateOfLeaving: string | null;
   active: boolean;
   reportingManager: boolean;
   currencyCode: string;
@@ -79,37 +80,11 @@ interface UserDetails {
 
 const EmployeeProfilePage = () => {
   const { userId } = useParams();
-  const location = useLocation();
-  const [employee, setEmployee] = useState<UserDetails>(() => {
-    const employeeDetails = location.state.employeeDetails;
-    return {
-      ...employeeDetails,
-      currentAddressLine1: employeeDetails.currentAddress?.addressLine1 || "",
-      currentAddressLine2: employeeDetails.currentAddress?.addressLine2 || "",
-      currentAddressLandmark: employeeDetails.currentAddress?.landmark || "",
-      currentAddressNationality:
-        employeeDetails.currentAddress?.nationality || "",
-      currentAddressZipcode: employeeDetails.currentAddress?.zipcode || "",
-      currentAddressState: employeeDetails.currentAddress?.state || "",
-      currentAddressDistrict: employeeDetails.currentAddress?.district || "",
-      permanentAddressLine1:
-        employeeDetails.permanentAddress?.addressLine1 || "",
-      permanentAddressLine2:
-        employeeDetails.permanentAddress?.addressLine2 || "",
-      permanentAddressLandmark:
-        employeeDetails.permanentAddress?.landmark || "",
-      permanentAddressNationality:
-        employeeDetails.permanentAddress?.nationality || "",
-      permanentAddressZipcode: employeeDetails.permanentAddress?.zipcode || "",
-      permanentAddressState: employeeDetails.permanentAddress?.state || "",
-      permanentAddressDistrict:
-        employeeDetails.permanentAddress?.district || "",
-    };
-  });
+  const [employee, setEmployee] = useState<UserDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedDetails, setEditedDetails] = useState(employee);
   const [errors, setErrors] = useState<any>({});
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedNav, setSelectedNav] = useState("Profile Details");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,18 +95,132 @@ const EmployeeProfilePage = () => {
 
   const [phoneNumbers, setPhoneNumbers] = useState({
     mobileNumber: {
-      countryCode: employee.countryCode || "",
-      number: employee.mobileNumber || "",
+      countryCode: employee?.countryCode || "",
+      number: employee?.mobileNumber || "",
     },
     alternateMobileNumber: {
-      countryCode: employee.alternateMobileNumberCountryCode || "",
-      number: employee.alternateMobileNumber || "",
+      countryCode: employee?.alternateMobileNumberCountryCode || "",
+      number: employee?.alternateMobileNumber || "",
     },
     emergencyContactMobileNumber: {
-      countryCode: employee.emergencyContactMobileNumberCountryCode || "",
-      number: employee.emergencyContactMobileNumber || "",
+      countryCode: employee?.emergencyContactMobileNumberCountryCode || "",
+      number: employee?.emergencyContactMobileNumber || "",
     },
   });
+
+  useEffect(() => {
+    const fetchEmployeeData = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.get(
+          `/api/v1/admin/fetch-employee-by-id/${userId}`
+        );
+        const employeeData = response.data.response.data;
+
+        const mappedEmployee: UserDetails = {
+          profileUrl: employeeData.profileUrl || "",
+          userId: employeeData.userId || "",
+          firstName: employeeData.firstName || "",
+          lastName: employeeData.lastName || "",
+          personalEmail: employeeData.personalEmail || "",
+          email: employeeData.email || "",
+          countryCode: employeeData.countryCode || "",
+          mobileNumber: employeeData.mobileNumber || "",
+          gender: employeeData.gender || "",
+          bloodGroup: employeeData.bloodGroup || "",
+          dateOfBirth: employeeData.dateOfBirth || "",
+          alternateMobileNumber: employeeData.alternateMobileNumber || "",
+          alternateMobileNumberCountryCode:
+            employeeData.alternateMobileNumberCountryCode || "",
+          emergencyContactPersonName:
+            employeeData.emergencyContactPersonName || "",
+          emergencyContactMobileNumber:
+            employeeData.emergencyContactMobileNumber || "",
+          emergencyContactMobileNumberCountryCode:
+            employeeData.emergencyContactMobileNumberCountryCode || "",
+          department: employeeData.department || "",
+          role: employeeData.role || "",
+          designation: employeeData.designation || "",
+          employmentType: employeeData.employmentType || "",
+          internshipDuration: employeeData.internshipDuration || "",
+          internshipEndDate: employeeData.internshipEndDate || "",
+          shiftTiming: employeeData.shiftTiming || "",
+          branch: employeeData.branch || "",
+          dateOfJoining: employeeData.dateOfJoining || "",
+          dateOfLeaving: employeeData.dateOfLeaving || null,
+          lastLogin: employeeData.lastLogin || "",
+          offboardingReason: employeeData.offboardingReason || null,
+          finalInteractionPdfName: employeeData.finalInteractionPdfName || null,
+          finalInteractionPdfUrl: employeeData.finalInteractionPdfUrl || null,
+          revokeReason: employeeData.revokeReason || null,
+          reportingManagerId: employeeData.reportingManagerId || "",
+          reportingMangerName: employeeData.reportingMangerName || "",
+          reportingManagerEmail: employeeData.reportingManagerEmail || "",
+          primarySkills: employeeData.primarySkills || [],
+          secondarySkills: employeeData.secondarySkills || [],
+          userRole: employeeData.userRole || null,
+          currentAddressLine1: employeeData.currentAddress?.addressLine1 || "",
+          currentAddressLine2: employeeData.currentAddress?.addressLine2 || "",
+          currentAddressLandmark: employeeData.currentAddress?.landmark || "",
+          currentAddressNationality:
+            employeeData.currentAddress?.nationality || "",
+          currentAddressZipcode: employeeData.currentAddress?.zipcode || "",
+          currentAddressState: employeeData.currentAddress?.state || "",
+          currentAddressDistrict: employeeData.currentAddress?.district || "",
+          permanentAddressLine1:
+            employeeData.permanentAddress?.addressLine1 || "",
+          permanentAddressLine2:
+            employeeData.permanentAddress?.addressLine2 || "",
+          permanentAddressLandmark:
+            employeeData.permanentAddress?.landmark || "",
+          permanentAddressNationality:
+            employeeData.permanentAddress?.nationality || "",
+          permanentAddressZipcode: employeeData.permanentAddress?.zipcode || "",
+          permanentAddressState: employeeData.permanentAddress?.state || "",
+          permanentAddressDistrict:
+            employeeData.permanentAddress?.district || "",
+          userProjects: employeeData.userProjects || [],
+          bankDetail: employeeData.bankDetail || null,
+          active: employeeData.active || false,
+          willingToTravel: employeeData.willingToTravel || false,
+          superAdmin: employeeData.superAdmin || false,
+          reportingManager: employeeData.reportingManager || false,
+        };
+
+        setEmployee(mappedEmployee);
+        setEditedDetails(mappedEmployee);
+        setAvatarUrl(mappedEmployee.profileUrl);
+        setPhoneNumbers({
+          mobileNumber: {
+            countryCode: mappedEmployee.countryCode || "",
+            number: mappedEmployee.mobileNumber || "",
+          },
+          alternateMobileNumber: {
+            countryCode: mappedEmployee.alternateMobileNumberCountryCode || "",
+            number: mappedEmployee.alternateMobileNumber || "",
+          },
+          emergencyContactMobileNumber: {
+            countryCode:
+              mappedEmployee.emergencyContactMobileNumberCountryCode || "",
+            number: mappedEmployee.emergencyContactMobileNumber || "",
+          },
+        });
+      } catch (error) {
+        console.error("Error fetching employee data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch employee data. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchEmployeeData();
+    }
+  }, [userId]);
 
   useEffect(() => {
     setUserRole(localStorage.getItem("role") || "");
@@ -142,16 +231,16 @@ const EmployeeProfilePage = () => {
       setEditedDetails(employee);
       setPhoneNumbers({
         mobileNumber: {
-          countryCode: employee.countryCode || "",
-          number: employee.mobileNumber || "",
+          countryCode: employee?.countryCode || "",
+          number: employee?.mobileNumber || "",
         },
         alternateMobileNumber: {
-          countryCode: employee.alternateMobileNumberCountryCode || "",
-          number: employee.alternateMobileNumber || "",
+          countryCode: employee?.alternateMobileNumberCountryCode || "",
+          number: employee?.alternateMobileNumber || "",
         },
         emergencyContactMobileNumber: {
-          countryCode: employee.emergencyContactMobileNumberCountryCode || "",
-          number: employee.emergencyContactMobileNumber || "",
+          countryCode: employee?.emergencyContactMobileNumberCountryCode || "",
+          number: employee?.emergencyContactMobileNumber || "",
         },
       });
     }
@@ -257,11 +346,11 @@ const EmployeeProfilePage = () => {
 
       // Transform skills into the required format
       const transformedSkills = [
-        ...(editedDetails.primarySkills || []).map((skill) => ({
+        ...(editedDetails?.primarySkills || []).map((skill) => ({
           skill,
           priority: 1,
         })),
-        ...(editedDetails.secondarySkills || []).map((skill) => ({
+        ...(editedDetails?.secondarySkills || []).map((skill) => ({
           skill,
           priority: 2,
         })),
@@ -269,7 +358,7 @@ const EmployeeProfilePage = () => {
 
       // Create the requestedData object
       const updatedProfileData: Partial<UserDetails> = {
-        userId: editedDetails.userId,
+        userId: editedDetails?.userId,
         firstName: editedDetails?.firstName,
         lastName: editedDetails?.lastName,
         bloodGroup: editedDetails?.bloodGroup,
@@ -424,31 +513,33 @@ const EmployeeProfilePage = () => {
                           onChange={handleFileChange}
                         />
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={toggleEdit}
-                          size="sm"
-                          variant={`${isEditing ? "outline" : "default"}`}
-                        >
-                          {isEditing ? (
-                            <>
-                              <X className="mr-2 h-4 w-4" />
-                              Cancel
-                            </>
-                          ) : (
-                            <>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit
-                            </>
-                          )}
-                        </Button>
-                        {isEditing && (
-                          <Button onClick={handleRequestApproval} size="sm">
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Update Changes
+                      {employee?.active && (
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={toggleEdit}
+                            size="sm"
+                            variant={`${isEditing ? "outline" : "default"}`}
+                          >
+                            {isEditing ? (
+                              <>
+                                <X className="mr-2 h-4 w-4" />
+                                Cancel
+                              </>
+                            ) : (
+                              <>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </>
+                            )}
                           </Button>
-                        )}
-                      </div>
+                          {isEditing && (
+                            <Button onClick={handleRequestApproval} size="sm">
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Update Changes
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                   <ProfileDetailsSection

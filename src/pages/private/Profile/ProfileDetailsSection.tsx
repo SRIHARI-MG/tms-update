@@ -8,11 +8,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import TagInput from "@/components/ui/tag-input";
 import PageIndicator from "@/components/ui/page-indicator";
 import PhoneInput from "@/components/ui/phone-input";
 import DatePicker from "@/components/ui/date-picker";
 import api from "@/api/apiService";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 
 interface ProfileDetailsSectionProps {
   userDetails: any;
@@ -69,6 +79,9 @@ const formSections = [
       "shiftTiming",
       "willingToTravel",
       "reportingManagerEmail",
+      "dateOfLeaving",
+      "offboardingReason",
+      "finalInteractionPdfUrl",
       "primarySkills",
       "secondarySkills",
     ],
@@ -228,6 +241,16 @@ export default function ProfileDetailsSection({
     );
   };
 
+  const FilePreview = ({ url }: { url: string }) => {
+    return (
+      <iframe
+        src={`${url}#toolbar=0`}
+        className="w-full h-full"
+        title="PDF Preview"
+      />
+    );
+  };
+
   // Add a null check at the beginning of the component
   if (!userDetails) {
     return <div>No user details available.</div>;
@@ -251,6 +274,86 @@ export default function ProfileDetailsSection({
                 <p className="text-lg font-semibold">{section.title}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {section.keys.map((key) => {
+                    if (key === "dateOfLeaving" && !userDetails?.active) {
+                      return (
+                        <div key={key} className="flex flex-col gap-2">
+                          <Label
+                            htmlFor={key}
+                            className="text-sm font-medium text-gray-500"
+                          >
+                            Date of Leaving
+                          </Label>
+                          <DatePicker
+                            value={editedDetails[key]}
+                            onChange={(date) => handleDateChange(key, date)}
+                            readOnly={!isEditing || !isFieldEditable(key)}
+                          />
+                        </div>
+                      );
+                    }
+
+                    if (key === "offboardingReason" && !userDetails?.active) {
+                      return (
+                        <div key={key} className="flex flex-col gap-2">
+                          <Label
+                            htmlFor={key}
+                            className="text-sm font-medium text-gray-500"
+                          >
+                            Offboarding Reason
+                          </Label>
+                          <Textarea
+                            id={key}
+                            value={editedDetails[key] as string}
+                            readOnly
+                            className="bg-primary/5 text-gray-700"
+                          />
+                        </div>
+                      );
+                    }
+
+                    if (
+                      key === "finalInteractionPdfUrl" &&
+                      !userDetails?.active
+                    ) {
+                      return (
+                        <div key={key} className="flex flex-col gap-2">
+                          <Label
+                            htmlFor={key}
+                            className="text-sm font-medium text-gray-500"
+                          >
+                            Final Interaction PDF
+                          </Label>
+                          {editedDetails[key] ? (
+                            <div className="flex items-center space-x-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline">
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    Preview
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[60vw] sm:max-h-[80vh] md:max-w-[40vw] md:max-h-[90vh] overflow-auto">
+                                  <DialogHeader>
+                                    <DialogTitle>
+                                      Final Interaction PDF Preview
+                                    </DialogTitle>
+                                  </DialogHeader>
+                                  <div className="mt-4 h-[60vh] md:h-[80vh]">
+                                    <FilePreview
+                                      url={editedDetails[key] as string}
+                                    />
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </div>
+                          ) : (
+                            <span className="text-gray-500">
+                              No PDF available
+                            </span>
+                          )}
+                        </div>
+                      );
+                    }
                     if (key.startsWith("currentAddress")) {
                       return null; // We'll handle current address separately
                     }
@@ -463,15 +566,22 @@ export default function ProfileDetailsSection({
                           key === "secondarySkills" ? (
                           !isEditing ? (
                             <div className="flex flex-wrap gap-2">
-                              {(editedDetails[key] as string[]).map(
-                                (skill, index) => (
-                                  <span
-                                    key={index}
-                                    className="bg-primary/10 text-primary px-2 py-1 rounded-full text-sm"
-                                  >
-                                    {skill}
-                                  </span>
+                              {editedDetails[key] &&
+                              (editedDetails[key] as string[]).length > 0 ? (
+                                (editedDetails[key] as string[]).map(
+                                  (skill, index) => (
+                                    <span
+                                      key={index}
+                                      className="bg-primary/10 text-primary px-2 py-1 rounded-full text-sm"
+                                    >
+                                      {skill}
+                                    </span>
+                                  )
                                 )
+                              ) : (
+                                <span className="text-gray-500 italic">
+                                  Skills not added
+                                </span>
                               )}
                             </div>
                           ) : (
@@ -501,6 +611,7 @@ export default function ProfileDetailsSection({
                             placeholder={getPlaceholder(key)}
                           />
                         )}
+
                         {errors[key] && (
                           <p className="text-red-500 text-xs mt-1">
                             {errors[key]}
