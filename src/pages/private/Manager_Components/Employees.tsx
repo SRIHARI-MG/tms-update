@@ -40,7 +40,8 @@ interface Employee {
   reportingManagerName: string
   reportingManagerEmail: string
   dateOfJoining: string
-  skills: string[]
+  primarySkills: string[]
+  secondarySkills: string[]
   employmentType: string
   internshipEndDate: string
   internshipDuration: string
@@ -74,11 +75,13 @@ interface Employee {
 export default function Component() {
   const navigate = useNavigate()
   const [employees, setEmployees] = useState<Employee[]>([])
+  console.log("employes", employees);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([])
   const [filters, setFilters] = useState({
     role: "all",
     designation: "all",
-    skill: "all",
+    primarySkills: "all",
+    secondarySkills: "all",
     branch: "all",
     project: "all",
   })
@@ -106,11 +109,14 @@ export default function Component() {
     return {
       roles: [...new Set(employees.map((emp) => emp.role))],
       designations: [...new Set(employees.map((emp) => emp.designation))],
-      skills: [...new Set(employees.flatMap((emp) => emp.skills))],
+      primarySkills: ["all",...new Set(employees?.flatMap((emp) => emp?.primarySkills))],
+      secondarySkills: ["all",...new Set(employees?.flatMap((emp) => emp?.secondarySkills))],
       branches: [...new Set(employees.map((emp) => emp.branch))],
       projects: [...new Set(employees.flatMap((emp) => emp.userProjects))],
     }
   }, [employees])
+
+  console.log("primarySkills", filterOptions);
 
   const filteredEmployees = useMemo(() => {
     return employees.filter((emp) => {
@@ -124,7 +130,8 @@ export default function Component() {
         (filters.role === "all" || emp.role === filters.role) &&
         (filters.designation === "all" ||
           emp.designation === filters.designation) &&
-        (filters.skill === "all" || emp.skills.includes(filters.skill)) &&
+        (filters.primarySkills === "all" || emp?.primarySkills?.includes(filters?.primarySkills)) &&
+        (filters.secondarySkills === "all" || emp?.secondarySkills?.includes(filters?.secondarySkills)) &&
         (filters.branch === "all" || emp.branch === filters.branch) &&
         (filters.project === "all" ||
           emp.userProjects.includes(filters.project))
@@ -136,7 +143,8 @@ export default function Component() {
     setFilters({
       role: "all",
       designation: "all",
-      skill: "all",
+      primarySkills: "all",
+      secondarySkills: "all",
       branch: "all",
       project: "all",
     })
@@ -219,7 +227,8 @@ export default function Component() {
     "reportingManagerName",
     "reportingManagerEmail",
     "dateOfJoining",
-    "skills",
+    "primarySkills",
+    "secondarySkills",
     "employmentType",
     "internshipEndDate",
     "internshipDuration",
@@ -308,16 +317,33 @@ export default function Component() {
       width: "10%",
     },
     {
-      header: "Skills",
+      header: "Primary Skills",
       filterable: true,
       accessor: (item: Employee) => (
         <div className="flex flex-wrap gap-1">
-          {item.skills.map((skill, index) => (
+          {item.primarySkills?.map((pskill, index) => (
             <span
               key={index}
               className="bg-primary/20 text-primary text-xs px-2 py-1 rounded"
             >
-              {skill}
+              {pskill}
+            </span>
+          ))}
+        </div>
+      ),
+      width: "35%",
+    },
+    {
+      header: "Secondary Skills",
+      filterable: true,
+      accessor: (item: Employee) => (
+        <div className="flex flex-wrap gap-1">
+          {item?.secondarySkills?.map((sskill, index) => (
+            <span
+              key={index}
+              className="bg-primary/20 text-primary text-xs px-2 py-1 rounded"
+            >
+              {sskill}
             </span>
           ))}
         </div>
@@ -362,9 +388,9 @@ export default function Component() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Roles</SelectItem>
-              {filterOptions.roles.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {role}
+              {filterOptions.roles?.map((role) => (
+                <SelectItem key={role} value={role || undefined}>
+                  {role || "Undefined"}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -379,8 +405,8 @@ export default function Component() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Designations</SelectItem>
-              {filterOptions.designations.map((designation) => (
-                <SelectItem key={designation} value={designation}>
+              {filterOptions.designations?.map((designation) => (
+                <SelectItem key={designation} value={designation || undefined}>
                   {designation}
                 </SelectItem>
               ))}
@@ -388,21 +414,39 @@ export default function Component() {
           </Select>
 
           <Select
-            onValueChange={(value) => handleFilterChange("skill", value)}
-            value={filters.skill}
+            onValueChange={(value) => handleFilterChange("primarySkills", value)}
+            value={filters.primarySkills}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Filter by Skill" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Skills</SelectItem>
-              {filterOptions.skills.map((skill) => (
-                <SelectItem key={skill} value={skill}>
-                  {skill}
+              <SelectItem value="all">Primary Skills</SelectItem>
+              {filterOptions.primarySkills?.map((pskill) => (
+                <SelectItem key={pskill} value={pskill || undefined}>
+                  {pskill}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+
+          <Select
+            onValueChange={(value) => handleFilterChange("secondarySkills", value)}
+            value={filters.secondarySkills}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Filter by Skill" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Secondary Skills</SelectItem>
+              {filterOptions.secondarySkills?.map((sskill) => (
+                <SelectItem key={sskill} value={sskill || undefined}>
+                  {sskill}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
 
           <Select
             onValueChange={(value) => handleFilterChange("branch", value)}
@@ -414,7 +458,7 @@ export default function Component() {
             <SelectContent>
               <SelectItem value="all">All Branches</SelectItem>
               {filterOptions.branches.map((branch) => (
-                <SelectItem key={branch} value={branch}>
+                <SelectItem key={branch} value={branch || undefined}>
                   {branch}
                 </SelectItem>
               ))}
@@ -431,7 +475,7 @@ export default function Component() {
             <SelectContent>
               <SelectItem value="all">All Projects</SelectItem>
               {filterOptions.projects.map((project) => (
-                <SelectItem key={project} value={project}>
+                <SelectItem key={project} value={project || undefined}>
                   {project}
                 </SelectItem>
               ))}

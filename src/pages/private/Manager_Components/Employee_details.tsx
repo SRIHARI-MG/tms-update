@@ -45,7 +45,8 @@ const formSchema = z.object({
   countryCode: z.string().min(1, { message: "Country code is required." }),
   reportingManagerId: z.string().uuid().nullable(),
   reportingMangerName: z.string().min(1, { message: "Reporting manager name is required." }).nullable(),
-  skills: z.array(z.string()),
+  primarySkills: z.array(z.string()),
+  secondarySkills: z.array(z.string()),
   employmentType: z.string().min(1, { message: "Employment type is required." }),
   internshipEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date must be in YYYY-MM-DD format." }).optional(),
   internshipDuration: z.string().min(1, { message: "Internship duration is required." }).optional(),
@@ -731,10 +732,29 @@ export default function Employee_details() {
                     
                     <FormField
                       control={form.control}
-                      name="skills"
+                      name="primarySkills"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Skills</FormLabel>
+                          <FormLabel>Primary Skills</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              {...field} 
+                              disabled={!isEditMode}
+                              value={field.value.join(", ")}
+                              onChange={(e) => field.onChange(e.target.value.split(", "))}
+                            />
+                          </FormControl>
+                          <FormDescription>Enter skills separated by commas</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="secondarySkills"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Secondary Skills</FormLabel>
                           <FormControl>
                             <Textarea 
                               {...field} 
