@@ -10,7 +10,7 @@ import { Roles, defaultRedirectPerRole } from "@/utils/roleConfig";
 import { LayoutPage } from "@/layout/LayoutPage";
 import Loading from "./components/ui/loading";
 import Employees from "./pages/private/Manager_Components/Employees";
-import Projects from "./pages/private/Manager_Components/Projects"
+import Projects from "./pages/private/Manager_Components/Projects";
 import Collaborate from "./pages/private/Manager_Components/Collaborate";
 import Certificate from "./pages/private/Manager_Components/Certificate";
 import Employee_details from "./pages/private/Manager_Components/Employee_details";
@@ -22,6 +22,7 @@ import Certificateslist from "./pages/private/Certificateslist";
 import Project_details from "./pages/private/Manager_Components/Project_details";
 import { number, string } from "zod";
 import Projectmembers from "./pages/private/Manager_Components/Projectmembers";
+import EmployeeOnboardForm from "./pages/private/EmployeeOnboardForm";
 
 // Lazy loaded components
 const LoginPage = lazy(() => import("@/pages/public/LoginPage"));
@@ -207,6 +208,14 @@ function App() {
                 }
               />
               <Route
+                path="onboard-employee"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
+                    <EmployeeOnboardForm />
+                  </AuthMiddleware>
+                }
+              />
+              <Route
                 path="offboarded-employees"
                 element={
                   <AuthMiddleware allowedRoles={[Roles.ROLE_HR]}>
@@ -261,7 +270,7 @@ function App() {
                 </AuthMiddleware>
               }
             />
-             <Route
+            <Route
               path="Employees"
               element={
                 <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
@@ -270,15 +279,15 @@ function App() {
               }
             />
             <Route
-                path="Employees/:userId"
-                element={
-                  <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
-                    <Employee_details/>
-                  </AuthMiddleware>
-                }
+              path="Employees/:userId"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
+                  <Employee_details />
+                </AuthMiddleware>
+              }
             />
-              
-             <Route
+
+            <Route
               path="Projects"
               element={
                 <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
@@ -286,7 +295,15 @@ function App() {
                 </AuthMiddleware>
               }
             />
-             <Route
+              <Route
+              path="Project_details"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
+                  <Project_details />
+                </AuthMiddleware>
+              }
+            />
+            <Route
               path="Collaborate"
               element={
                 <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
@@ -302,14 +319,7 @@ function App() {
                 </AuthMiddleware>
               }
             />
-            <Route
-              path="Project_details"
-              element={
-                <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
-                  <Project_details />
-                </AuthMiddleware>
-              }
-            />
+          
              <Route
               path="Projectmembers"
               element={
@@ -321,7 +331,7 @@ function App() {
              
 
           </Route>
-         
+
           {/* Add other role routes similarly */}
         </Route>
 

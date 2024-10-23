@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import RequestSection from "./RequestSection";
 import api from "@/api/apiService";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import Loading from "@/components/ui/loading";
+import { Textarea } from "@/components/ui/textarea";
 
 const TrackRequestPage = () => {
   const userRole = localStorage.getItem("role");
@@ -68,6 +69,7 @@ const TrackRequestPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [isFetchingData, setIsFetchingData] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   // Status options
   const statusOptions = ["PENDING", "APPROVED", "REJECTED", "INPROGRESS"];
@@ -116,6 +118,125 @@ const TrackRequestPage = () => {
 
   const getAvatarFallback = (firstName: string) => {
     return firstName?.substring(0, 2).toUpperCase();
+  };
+
+  const handleViewUpdates = useCallback((data: any) => {
+    setSelectedData(data);
+    setFormData(data.requestedData);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleApprove = async (requestId: string) => {
+    try {
+      let endpoint = "";
+      let payload = {};
+
+      switch (activePage) {
+        case "Profile Request":
+          endpoint = "/api/v1/admin/request-approval";
+          payload = {
+            requestId: parseInt(requestId),
+            approvalStatus: "Approved",
+            employeeId: selectedData.employeeId,
+          };
+          break;
+        case "Bank Details Request":
+          endpoint = "/api/v1/bankDetails/request-approval";
+          payload = {
+            requestId: parseInt(requestId),
+            approvalStatus: "Accepted",
+          };
+          break;
+        case "Documents Request":
+          endpoint = "/api/v1/document/request-approval";
+          payload = {
+            requestId: parseInt(requestId),
+            approvalStatus: "Approved",
+          };
+          break;
+        default:
+          throw new Error("Invalid request type");
+      }
+
+      await api.post(endpoint, payload);
+      toast({
+        title: "Success",
+        description: "Request approved successfully",
+        variant: "default",
+      });
+      setIsModalOpen(false);
+      // Refresh the data
+      const response = await api.get(activeApiUrl);
+      setRequestedData(response.data.response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve request",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReject = async (requestId: string) => {
+    if (!rejectionReason) {
+      toast({
+        title: "Error",
+        description: "Please provide a reason for rejection",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      let endpoint = "";
+      let payload = {};
+
+      switch (activePage) {
+        case "Profile Request":
+          endpoint = "/api/v1/admin/request-approval";
+          payload = {
+            requestId: parseInt(requestId),
+            approvalStatus: "Rejected",
+            employeeId: selectedData.employeeId,
+            description: rejectionReason,
+          };
+          break;
+        case "Bank Details Request":
+          endpoint = "/api/v1/bankDetails/request-approval";
+          payload = {
+            requestId: parseInt(requestId),
+            approvalStatus: "Rejected",
+            description: rejectionReason,
+          };
+          break;
+        case "Documents Request":
+          endpoint = "/api/v1/document/request-approval";
+          payload = {
+            requestId: parseInt(requestId),
+            approvalStatus: "Rejected",
+            description: rejectionReason,
+          };
+          break;
+        default:
+          throw new Error("Invalid request type");
+      }
+
+      await api.post(endpoint, payload);
+      toast({
+        title: "Success",
+        description: "Request rejected successfully",
+        variant: "default",
+      });
+      setIsModalOpen(false);
+      // Refresh the data
+      const response = await api.get(activeApiUrl);
+      setRequestedData(response.data.response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject request",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -200,79 +321,82 @@ const TrackRequestPage = () => {
     },
   ];
 
-  const generateColumns = (sectionTitle: string) => {
-    if (sectionTitle === "Profile Request") {
-      return profileColumn;
-    }
+  const generateColumns = useCallback(
+    (sectionTitle: string) => {
+      if (sectionTitle === "Profile Request") {
+        return profileColumn;
+      }
 
-    const commonColumns = [
-      {
-        header: "Request ID",
-        accessor: "requestId",
-        sortable: true,
-        width: "10%",
-      },
-      {
-        header: "Requested Date",
-        accessor: "requestedDate",
-        sortable: true,
-        width: "25%",
-      },
-      {
-        header: "Status",
-        accessor: (data: any) =>
-          getStatusBadge(data.requestStatus?.toUpperCase()),
-        sortable: true,
-        width: "20%",
-      },
-      {
-        header: "View All Updates",
-        accessor: (data: any) => (
-          <Button
-            className="md:w-full w-fit"
-            onClick={() => setSelectedData(data)}
-          >
-            View Updates
-          </Button>
-        ),
-        width: "5%",
-        className: "py-2",
-      },
-    ];
-
-    const specificColumns: { [key: string]: any[] } = {
-      "Bank Details Request": [
+      const commonColumns = [
         {
-          header: "Account Holder Name",
+          header: "Request ID",
+          accessor: "requestId",
+          sortable: true,
+          width: "10%",
+        },
+        {
+          header: "Requested Date",
+          accessor: "requestedDate",
+          sortable: true,
+          width: "25%",
+        },
+        {
+          header: "Status",
+          accessor: (data: any) =>
+            getStatusBadge(data.requestStatus?.toUpperCase()),
+          sortable: true,
+          width: "20%",
+        },
+        {
+          header: "View All Updates",
           accessor: (data: any) => (
-            <div className="flex items-center space-x-2">
-              <p>{data.previousData.accountHolderName}</p>
-            </div>
+            <Button
+              className="md:w-full w-fit"
+              onClick={() => handleViewUpdates(data)}
+            >
+              View Updates
+            </Button>
           ),
-          width: "20%",
+          width: "5%",
+          className: "py-2",
         },
-        {
-          header: "Bank Name",
-          accessor: (data: any) => (
-            <div className="flex items-center space-x-2">
-              <p>{data.previousData.bankName}</p>
-            </div>
-          ),
-          width: "20%",
-        },
-      ],
-      "Certificate Request": [
-        {
-          header: "Certificate Name",
-          accessor: (data: any) => data.requestedData.certificateName,
-          width: "20%",
-        },
-      ],
-      "Documents Request": [],
-    };
+      ];
 
-    return [...specificColumns[sectionTitle], ...commonColumns];
-  };
+      const specificColumns: { [key: string]: any[] } = {
+        "Bank Details Request": [
+          {
+            header: "Account Holder Name",
+            accessor: (data: any) => (
+              <div className="flex items-center space-x-2">
+                <p>{data.previousData.accountHolderName}</p>
+              </div>
+            ),
+            width: "20%",
+          },
+          {
+            header: "Bank Name",
+            accessor: (data: any) => (
+              <div className="flex items-center space-x-2">
+                <p>{data.previousData.bankName}</p>
+              </div>
+            ),
+            width: "20%",
+          },
+        ],
+        "Certificate Request": [
+          {
+            header: "Certificate Name",
+            accessor: (data: any) => data.requestedData.certificateName,
+            width: "20%",
+          },
+        ],
+        "Documents Request": [],
+      };
+
+      return [...specificColumns[sectionTitle], ...commonColumns];
+    },
+    [handleViewUpdates]
+  );
 
   const ReadOnlyField = ({
     label,
@@ -399,10 +523,44 @@ const TrackRequestPage = () => {
   );
 
   const renderDialogContent = () => {
+    const renderActionButtons = () => {
+      if (!isHR || selectedData?.requestStatus?.toUpperCase() !== "PENDING") {
+        return null;
+      }
+
+      return (
+        <div className="flex flex-col gap-5 mt-4 mx-2">
+          <div className="space-y-2">
+            <Label htmlFor="rejectionReason">Rejection Reason</Label>
+            <Textarea
+              id="rejectionReason"
+              placeholder="Enter reason for rejection (required for rejecting requests)"
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              className="bg-background/80 focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button
+              onClick={() => handleApprove(selectedData.requestId.toString())}
+            >
+              Approve
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleReject(selectedData.requestId.toString())}
+            >
+              Reject
+            </Button>
+          </div>
+        </div>
+      );
+    };
+
     if (activePage === "Profile Request") {
       return (
-        <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
-          <div className="flex justify-center mb-4">
+        <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto ">
+          <div className="flex justify-center mb-4 mx-2">
             <Avatar
               className={`${
                 selectedData?.requestedData.profileUrl
@@ -420,7 +578,7 @@ const TrackRequestPage = () => {
               </AvatarFallback>
             </Avatar>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 mx-2">
             <ReadOnlyField
               label="First Name"
               value={formData.firstName}
@@ -505,7 +663,7 @@ const TrackRequestPage = () => {
               isTagInput={true}
             />
           </div>
-          <div className="space-y-4">
+          <div className="space-y-4 mx-2">
             <AddressFields
               address={formData.currentAddress}
               previousAddress={selectedData?.previousData.currentAddress}
@@ -517,12 +675,13 @@ const TrackRequestPage = () => {
               type="Permanent"
             />
           </div>
+          {renderActionButtons()}
         </div>
       );
     } else if (activePage === "Bank Details Request") {
       return (
         <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 mx-2">
             <ReadOnlyField
               label="Account Holder Name"
               value={formData.accountHolderName}
@@ -554,13 +713,15 @@ const TrackRequestPage = () => {
               previousValue={selectedData?.previousData.chequeProofUrl || ""}
               isUrl={true}
             />
+
+            {renderActionButtons()}
           </div>
         </div>
       );
     } else if (activePage === "Certificate Request" && !isHR) {
       return (
         <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 mx-2">
             <ReadOnlyField
               label="Certificate Name"
               value={formData.certificateName}
@@ -600,7 +761,7 @@ const TrackRequestPage = () => {
           <div className="space-y-4">
             <div className="space-y-4">
               <p className="text-md font-semibold">Aadhar Details</p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mx-2">
                 <ReadOnlyField
                   label="Aadhar Number"
                   value={formData.aadharNumber}
@@ -632,8 +793,8 @@ const TrackRequestPage = () => {
             </div>
 
             <div className="space-y-4">
-              <p className="text-md font-semibold">Aadhar Details</p>
-              <div className="grid grid-cols-2 gap-4">
+              <p className="text-md font-semibold">PAN Details</p>
+              <div className="grid grid-cols-2 gap-4 mx-2">
                 <ReadOnlyField
                   label="PAN Number"
                   value={formData.panCardNumber}
@@ -659,7 +820,7 @@ const TrackRequestPage = () => {
 
             <div className="space-y-4">
               <p className="text-md font-semibold">Passport Details</p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mx-2">
                 <ReadOnlyField
                   label="PAN Number"
                   value={formData.panCardNumber}
@@ -682,6 +843,8 @@ const TrackRequestPage = () => {
                 )}
               </div>
             </div>
+
+            {renderActionButtons()}
           </div>
         </div>
       );

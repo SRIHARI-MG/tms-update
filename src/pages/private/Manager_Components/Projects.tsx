@@ -44,7 +44,9 @@ const Projects = () => {
   const fetchProjects = async () => {
     try {
       setIsFetchingData(true);
-      const response = await api.get("/api/v1/project/get-all-projects-of-manager/MG180328");
+      const response = await api.get(
+        "/api/v1/project/get-all-projects-of-manager/MG180328"
+      );
       setProjects(response.data.response.data);
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -232,23 +234,23 @@ const Projects = () => {
           data={filteredProjects}
           columns={columns}
           itemsPerPage={10}
-          onClickView={(project) => (
-            <ProjectCard
-              projectCode={project.projectCode}
-              projectName={project.projectName}
-              subproject={project.subproject}
-              projectDescription={project.projectDescription}
-              startDate={project.startDate}
-              estimatedEndDate={project.estimatedEndDate}
-              projectType={project.projectType}
-              utilizationPercentage={project.utilizationPercentage}
-              projectStatus={project.projectStatus}
-              projectOwner={project.projectOwner}
-              projectOwnerProfile={project.projectOwnerProfile}
-              projectManager={project.projectManager}
-              projectManagerProfile={project.projectManagerProfile}
-            />
-          )}
+          // onClickView={(project) => (
+          //   <ProjectCard
+          //     projectCode={project.projectCode}
+          //     projectName={project.projectName}
+          //     subproject={project.subproject}
+          //     projectDescription={project.projectDescription}
+          //     startDate={project.startDate}
+          //     estimatedEndDate={project.estimatedEndDate}
+          //     projectType={project.projectType}
+          //     utilizationPercentage={project.utilizationPercentage}
+          //     projectStatus={project.projectStatus}
+          //     projectOwner={project.projectOwner}
+          //     projectOwnerProfile={project.projectOwnerProfile}
+          //     projectManager={project.projectManager}
+          //     projectManagerProfile={project.projectManagerProfile}
+          //   />
+          // )}
         />
       </div>
     </div>

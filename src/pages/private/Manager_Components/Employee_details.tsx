@@ -1,32 +1,52 @@
-import React, { useState, useEffect } from "react"
-import { useLocation, useParams } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import WorkspaceMyProjects from "../Employee_Components/Workspace/WorkspaceMyProjects"
-import Certificates from "../Certificateslist"
-import ViewProjectDetailsById from "../ViewProjectDetailsById"
+import React, { useState, useEffect } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import Certificates from "../ViewCertificateDetailsById";
+import ViewProjectDetailsById from "../ViewProjectDetailsById";
 
 const formSchema = z.object({
   userId: z.string().uuid(),
   profileUrl: z.string().url().optional(),
-  firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
-  lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
+  firstName: z
+    .string()
+    .min(2, { message: "First name must be at least 2 characters." }),
+  lastName: z
+    .string()
+    .min(2, { message: "Last name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
   personalEmail: z.string().email({ message: "Invalid email address." }),
   dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date must be in YYYY-MM-DD format." }),
@@ -40,7 +60,12 @@ const formSchema = z.object({
   bloodGroup: z.string().min(1, { message: "Blood group is required." }),
   role: z.string().min(1, { message: "Role is required." }),
   branch: z.string().min(1, { message: "Branch is required." }),
-  dateofLeaving: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date must be in YYYY-MM-DD format." }).optional(),
+  dateofLeaving: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: "Date must be in YYYY-MM-DD format.",
+    })
+    .optional(),
   projects: z.array(z.string()),
   countryCode: z.string().min(1, { message: "Country code is required." }),
   reportingManagerId: z.string().uuid().nullable(),
@@ -57,19 +82,37 @@ const formSchema = z.object({
   offboardingReason: z.string().optional(),
   revokeReason: z.string().optional(),
   department: z.string().min(1, { message: "Department is required." }),
-  currentAddressLine1: z.string().min(1, { message: "Current address line 1 is required." }),
-  currentAddressLine2: z.string().optional(),
-  currentAddressLandmark: z.string().optional(),
-  currentAddressNationality: z.string().min(1, { message: "Current address nationality is required." }),
-  currentAddressZipcode: z.string().regex(/^\d+$/, { message: "Zipcode must contain only numbers." }),
-  currentAddressState: z.string().min(1, { message: "Current address state is required." }),
-  currentAddressDistrict: z.string().min(1, { message: "Current address district is required." }),
-  permanentAddressLine1: z.string().min(1, { message: "Permanent address line 1 is required." }),
-  permanentAddressLine2: z.string().optional(),
-  permanentAddressLandmark: z.string().optional(),
-  permanentAddressNationality: z.string().min(1, { message: "Permanent address nationality is required." }),
-  permanentAddressZipcode: z.string().regex(/^\d+$/, { message: "Zipcode must contain only numbers." }),
-  permanentAddressState: z.string().min(1, { message: "Permanent address state is required." }),
+  // currentAddressLine1: z.string().min(1, { message: "Current address line 1 is required." }),
+  // currentAddressLine2: z.string().optional(),
+  // currentAddressLandmark: z.string().optional(),
+  // currentAddressNationality: z.string().min(1, { message: "Current address nationality is required." }),
+  // currentAddressZipcode: z.string().regex(/^\d+$/, { message: "Zipcode must contain only numbers." }),
+  // currentAddressState: z.string().min(1, { message: "Current address state is required." }),
+  // currentAddressDistrict: z.string().min(1, { message: "Current address district is required." }),
+  // permanentAddressLine1: z.string().min(1, { message: "Permanent address line 1 is required." }),
+  // permanentAddressLine2: z.string().optional(),
+  // permanentAddressLandmark: z.string().optional(),
+  // permanentAddressNationality: z.string().min(1, { message: "Permanent address nationality is required." }),
+  // permanentAddressZipcode: z.string().regex(/^\d+$/, { message: "Zipcode must contain only numbers." }),
+  // permanentAddressState: z.string().min(1, { message: "Permanent address state is required." }),
+  currentAddress: z.object({
+    addressLine1: z.string().min(1, { message: "Address line 1 is required." }),
+    addressLine2: z.string().optional(),
+    landmark: z.string().optional(),
+    district: z.string().min(1, { message: "District is required." }),
+    state: z.string().min(1, { message: "State is required." }),
+    zipcode: z.string().regex(/^\d+$/, { message: "Zipcode must contain only numbers." }),
+    nationality: z.string().min(1, { message: "Nationality is required." }),
+  }),
+  permanentAddress: z.object({
+    addressLine1: z.string().min(1, { message: "Address line 1 is required." }),
+    addressLine2: z.string().optional(),
+    landmark: z.string().optional(),
+    district: z.string().min(1, { message: "District is required." }),
+    state: z.string().min(1, { message: "State is required." }),
+    zipcode: z.string().regex(/^\d+$/, { message: "Zipcode must contain only numbers." }),
+    nationality: z.string().min(1, { message: "Nationality is required." }),
+  }),
   permanentAddressDistrict: z.string().min(1, { message: "Permanent address district is required." }),
   alternateMobileNumberCountryCode: z.string().min(1, { message: "Alternate mobile number country code is required." }).optional(),
   emergencyContactMobileNumberCountryCode: z.string().min(1, { message: "Emergency contact mobile number country code is required." }),
@@ -82,9 +125,9 @@ const formSchema = z.object({
   currencyCode: z.string().min(1, { message: "Currency code is required." }),
   superAdmin: z.string().optional(),
   userRole: z.string().min(1, { message: "User role is required." }),
-})
+});
 
-type EmployeeType = z.infer<typeof formSchema>
+type EmployeeType = z.infer<typeof formSchema>;
 
 // const dummyEmployee: EmployeeType = {
 //   employee_id: "1",
@@ -150,38 +193,38 @@ type EmployeeType = z.infer<typeof formSchema>
 export default function Employee_details() {
   const { userId } = useParams();
   const location = useLocation();
-  const employee:EmployeeType = location.state.employeeDetails;
+  const employee: EmployeeType = location.state.employeeDetails;
   // const [employee, setEmployee] = useState<EmployeeType>(dummyEmployee)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<EmployeeType>({
     resolver: zodResolver(formSchema),
     defaultValues: employee,
-  })
-
- 
+  });
 
   const onSubmit = async (values: EmployeeType) => {
     try {
-      
-        const response = await fetch(`/api/employees/${userId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(values),
-        })
-        if (!response.ok) {
-          throw new Error('Failed to update employee data')
-        }
-        setIsEditMode(false)
-      
+      const response = await fetch(`/api/employees/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update employee data");
+      }
+      setIsEditMode(false);
     } catch (error) {
-      console.error("Error updating employee data:", error)
+      console.error("Error updating employee data:", error);
     }
-  }
+  };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -195,8 +238,14 @@ export default function Employee_details() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="flex justify-between items-center">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={employee.profileUrl} alt={`${employee.firstName} ${employee.lastName}`} />
-                  <AvatarFallback>{employee.firstName[0]}{employee.lastName[0]}</AvatarFallback>
+                  <AvatarImage
+                    src={employee.profileUrl}
+                    alt={`${employee.firstName} ${employee.lastName}`}
+                  />
+                  <AvatarFallback>
+                    {employee.firstName[0]}
+                    {employee.lastName[0]}
+                  </AvatarFallback>
                 </Avatar>
                 {/* {!isEditMode && (
                   <Button onClick={() => setIsEditMode(true)}>Edit</Button>
@@ -206,7 +255,9 @@ export default function Employee_details() {
               <Tabs defaultValue="personal" className="w-full">
                 <TabsList>
                   <TabsTrigger value="personal">Personal Details</TabsTrigger>
-                  <TabsTrigger value="professional">Professional Details</TabsTrigger>
+                  <TabsTrigger value="professional">
+                    Professional Details
+                  </TabsTrigger>
                   <TabsTrigger value="projects">Projects</TabsTrigger>
                   <TabsTrigger value="certificates">Certificates</TabsTrigger>
                 </TabsList>
@@ -246,7 +297,11 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="email" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="email"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -270,7 +325,7 @@ export default function Employee_details() {
                                   disabled={!isEditMode}
                                 >
                                   {field.value ? (
-                                    format(new  Date(field.value), "PPP")
+                                    format(new Date(field.value), "PPP")
                                   ) : (
                                     <span>Pick a date</span>
                                   )}
@@ -278,13 +333,25 @@ export default function Employee_details() {
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
                               <Calendar
                                 mode="single"
-                                selected={field.value ? new Date(field.value) : undefined}
-                                onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                                selected={
+                                  field.value
+                                    ? new Date(field.value)
+                                    : undefined
+                                }
+                                onSelect={(date) =>
+                                  field.onChange(
+                                    date ? format(date, "yyyy-MM-dd") : ""
+                                  )
+                                }
                                 disabled={(date) =>
-                                  date > new Date() || date < new Date("1900-01-01")
+                                  date > new Date() ||
+                                  date < new Date("1900-01-01")
                                 }
                                 initialFocus
                               />
@@ -300,7 +367,11 @@ export default function Employee_details() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Gender</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            disabled={!isEditMode}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select gender" />
@@ -338,7 +409,11 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Mobile Number</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="tel" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="tel"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -351,7 +426,11 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Alternate Mobile Number</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="tel" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="tel"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -377,7 +456,11 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Emergency Contact Number</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="tel" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="tel"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -386,7 +469,7 @@ export default function Employee_details() {
                     <h1>Current Address</h1>
                     <FormField
                       control={form.control}
-                      name="currentAddressLine1"
+                      name="currentAddress.addressLine1"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Address Line</FormLabel>
@@ -399,7 +482,7 @@ export default function Employee_details() {
                     />
                     <FormField
                       control={form.control}
-                      name="currentAddressLine2"
+                      name="currentAddress.addressLine2"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Address Line</FormLabel>
@@ -410,9 +493,9 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
-                      name="currentAddressLandmark"
+                      name="currentAddress.landmark"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>LandMark</FormLabel>
@@ -423,9 +506,9 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
-                      name="currentAddressNationality"
+                      name="currentAddress.nationality"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nationality</FormLabel>
@@ -438,7 +521,7 @@ export default function Employee_details() {
                     />
                     <FormField
                       control={form.control}
-                      name="currentAddressZipcode"
+                      name="currentAddress.zipcode"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Zipcode</FormLabel>
@@ -451,7 +534,7 @@ export default function Employee_details() {
                     />
                     <FormField
                       control={form.control}
-                      name="currentAddressState"
+                      name="currentAddress.state"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>State</FormLabel>
@@ -462,9 +545,9 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                      <FormField
+                    <FormField
                       control={form.control}
-                      name="currentAddressDistrict"
+                      name="currentAddress.district"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>District</FormLabel>
@@ -478,7 +561,7 @@ export default function Employee_details() {
                     <h1>Permanent Address</h1>
                     <FormField
                       control={form.control}
-                      name="permanentAddressLine1"
+                      name="permanentAddress.addressLine1"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Addressline1</FormLabel>
@@ -491,7 +574,7 @@ export default function Employee_details() {
                     />
                     <FormField
                       control={form.control}
-                      name="permanentAddressLine2"
+                      name="permanentAddress.addressLine2"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Addressline2</FormLabel>
@@ -502,9 +585,9 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
-                      name="permanentAddressLandmark"
+                      name="permanentAddress.landmark"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>LandMark</FormLabel>
@@ -515,9 +598,9 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                      <FormField
+                    <FormField
                       control={form.control}
-                      name="permanentAddressNationality"
+                      name="permanentAddress.nationality"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nationality</FormLabel>
@@ -528,9 +611,9 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
-                      name="permanentAddressZipcode"
+                      name="permanentAddress.zipcode"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Zipcode</FormLabel>
@@ -541,9 +624,9 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
-                      name="permanentAddressState"
+                      name="permanentAddress.state"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>State</FormLabel>
@@ -554,9 +637,9 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
-                      name="permanentAddressDistrict"
+                      name="permanentAddress.district"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>District</FormLabel>
@@ -598,7 +681,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="role"
                       render={({ field }) => (
@@ -611,7 +694,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="designation"
                       render={({ field }) => (
@@ -624,7 +707,7 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="department"
                       render={({ field }) => (
@@ -702,11 +785,22 @@ export default function Employee_details() {
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
                               <Calendar
                                 mode="single"
-                                selected={field.value ? new Date(field.value) : undefined}
-                                onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                                selected={
+                                  field.value
+                                    ? new Date(field.value)
+                                    : undefined
+                                }
+                                onSelect={(date) =>
+                                  field.onChange(
+                                    date ? format(date, "yyyy-MM-dd") : ""
+                                  )
+                                }
                                 disabled={(date) => date > new Date()}
                                 initialFocus
                               />
@@ -723,13 +817,17 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Reporting Manager</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="number" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="number"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="primarySkills"
@@ -768,13 +866,40 @@ export default function Employee_details() {
                         </FormItem>
                       )}
                     />
+                     <FormField
+                      control={form.control}
+                      name="secondarySkills"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Secondary Skills</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              disabled={!isEditMode}
+                              value={field.value.join(", ")}
+                              onChange={(e) =>
+                                field.onChange(e.target.value.split(", "))
+                              }
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Enter skills separated by commas
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="willingToTravel"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Willing to Travel</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditMode}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            disabled={!isEditMode}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select option" />
@@ -796,7 +921,11 @@ export default function Employee_details() {
                         <FormItem>
                           <FormLabel>Salary</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditMode} type="email" />
+                            <Input
+                              {...field}
+                              disabled={!isEditMode}
+                              type="email"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -806,17 +935,22 @@ export default function Employee_details() {
                 </TabsContent>
 
                 <TabsContent value="projects">
-                <ViewProjectDetailsById userId={userId} />
+                  <ViewProjectDetailsById userId={userId} />
                 </TabsContent>
 
                 <TabsContent value="certificates">
-                 <Certificates userId={userId} />
+                  <Certificates userId={userId} />
                 </TabsContent>
               </Tabs>
 
               {isEditMode && (
                 <div className="flex justify-end space-x-4">
-                  <Button variant="outline" onClick={() => setIsEditMode(false)}>Cancel</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditMode(false)}
+                  >
+                    Cancel
+                  </Button>
                   <Button type="submit">Save Changes</Button>
                 </div>
               )}

@@ -74,8 +74,6 @@ export default function Project_details() {
       setProject(data)
     } catch (error) {
       console.error('Error fetching project details:', error)
-      
-      setProject(dummyProject)
     } finally {
       setIsLoading(false)
     }

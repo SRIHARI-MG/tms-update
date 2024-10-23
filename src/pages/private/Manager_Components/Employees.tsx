@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useEffect, useState, useMemo } from "react"
 import DynamicTable from "@/components/ui/custom-table"
 import {
@@ -175,6 +173,10 @@ export default function Component() {
   }
 
   const handleExport = () => {
+    if (selectedEmployees.length === 1) {
+      handleExportSingle(selectedEmployees[0]);
+      return;
+    }
     const exportData = employees
       .filter((emp) => selectedEmployees.includes(emp.userId))
       .map((employee) => {
@@ -183,16 +185,35 @@ export default function Component() {
           const keys = field.split(".")
           let value = employee as any
           keys.forEach((key) => {
-            value = value[key]
+            value = value?.[key]
           })
-          filteredData[field] = value
+          filteredData[field] = value !== undefined ? value : 'N/A';
         })
         return filteredData
       })
-
+  
     exportToExcel(exportData, "selected_employees_data")
   }
-
+  
+  const handleExportSingle = (employeeId: string) => {
+    const employee = employees.find(emp => emp.userId === employeeId);
+    if (!employee) return;
+  
+    const exportData = [{
+      ...fieldsList.reduce((acc, field) => {
+        const keys = field.split(".")
+        let value = employee as any
+        keys.forEach((key) => {
+          value = value?.[key]
+        })
+        acc[field] = value !== undefined ? value : 'N/A';
+        return acc;
+      }, {} as { [key: string]: any })
+    }];
+  
+    exportToExcel(exportData, `employee_${employeeId}_all_data`)
+  }
+  
   const handleExportAll = () => {
     const exportData = employees.map((employee) => {
       const filteredData: { [key: string]: any } = {}
@@ -200,16 +221,15 @@ export default function Component() {
         const keys = field.split(".")
         let value = employee as any
         keys.forEach((key) => {
-          value = value[key]
+          value = value?.[key]
         })
-        filteredData[field] = value
+        filteredData[field] = value !== undefined ? value : 'N/A';
       })
       return filteredData
     })
-
+  
     exportToExcel(exportData, "all_employees_data")
   }
-
   const fieldsList = [
     "userId",
     "firstName",

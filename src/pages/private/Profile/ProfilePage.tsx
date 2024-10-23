@@ -2,8 +2,6 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Briefcase,
   FileText,
@@ -19,14 +17,6 @@ import {
   User2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import TagInput from "@/components/ui/tag-input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,6 +60,8 @@ interface UserDetails {
   reportingMangerName?: string;
   reportingManagerEmail?: string;
   skills?: string[];
+  primarySkills?: string[];
+  secondarySkills?: string[];
   employmentType?: string;
   department?: string;
   internshipEndDate: string;
@@ -115,62 +107,13 @@ interface Documents {
   passport: DocumentDetails;
 }
 
-const formSections = [
-  {
-    title: "Personal Details",
-    keys: [
-      "firstName",
-      "lastName",
-      "dateOfBirth",
-      "gender",
-      "mobileNumber",
-      "alternateMobileNumber",
-      "personalEmail",
-      "bloodGroup",
-      "emergencyContactPersonName",
-      "emergencyContactMobileNumber",
-      "currentAddressLine1",
-      "currentAddressLine2",
-      "currentAddressLandmark",
-      "currentAddressNationality",
-      "currentAddressState",
-      "currentAddressDistrict",
-      "currentAddressZipcode",
-      "permanentAddressLine1",
-      "permanentAddressLine2",
-      "permanentAddressLandmark",
-      "permanentAddressNationality",
-      "permanentAddressState",
-      "permanentAddressDistrict",
-      "permanentAddressZipcode",
-    ],
-  },
-  {
-    title: "Professional Details",
-    keys: [
-      "userId",
-      "email",
-      "dateOfJoining",
-      "employmentType",
-      "internshipDuration",
-      "internshipEndDate",
-      "designation",
-      "shiftTiming",
-      "willingToTravel",
-      "reportingManagerEmail",
-      "skills",
-    ],
-  },
-];
-
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { userDetails } = useUser();
-  const { updateUserDetails } = useUserActions();
+  const { updateUserDetails, fetchUserDetails } = useUserActions();
   const [selectedNav, setSelectedNav] = useState("Profile Details");
   const [isEditing, setIsEditing] = useState(false);
-  const [activePage, setActivePage] = useState(formSections[0].title);
   const [editedDetails, setEditedDetails] = useState<any>({});
   const [errors, setErrors] = useState<any>({});
   const [isEditingDocuments, setIsEditingDocuments] = useState<boolean>(false);
@@ -254,64 +197,12 @@ export default function ProfilePage() {
     setIsMobileNavOpen(!isMobileNavOpen);
   };
 
-  const isFieldEditable = (key: string) => {
-    const nonEditableFields = [
-      "userId",
-      "email",
-      "dateOfJoining",
-      "employmentType",
-      "internshipDuration",
-      "internshipEndDate",
-      "designation",
-      "reportingManagerEmail",
-      "shiftTiming",
-    ];
-    return !nonEditableFields.includes(key);
-  };
-
   const navItems = [
     { name: "Profile Details", icon: User2 },
     { name: "Bank Details", icon: Briefcase },
     { name: "Documents", icon: FileText },
     { name: "Certifications", icon: Award },
     { name: "Change Password", icon: Key },
-  ];
-
-  const countryCodes = ["+91", "+65", "+60", "+1", "+63"];
-  const genderOptions = ["Male", "Female", "Others"];
-  const bloodGroupOptions = [
-    "A+",
-    "A-",
-    "B+",
-    "B-",
-    "O+",
-    "O-",
-    "AB+",
-    "AB-",
-    "A1+",
-    "A1-",
-    "A2+",
-    "A2-",
-    "A1B+",
-    "A1B-",
-    "A2B+",
-    "A2B-",
-  ];
-  const willingToTravelOptions = [
-    { label: "Yes", value: true },
-    { label: "No", value: false },
-  ];
-  const employmentTypeOptions = [
-    "Intern",
-    "Full-time",
-    "Part-time",
-    "Consultant",
-  ];
-  const shiftTimeOptions = [
-    "6.30 AM - 3.30 PM",
-    "8.30 AM - 5.30 PM",
-    "9.30 AM - 6.30 PM",
-    "Flexible Shift",
   ];
 
   const showToast = React.useCallback(
@@ -325,15 +216,6 @@ export default function ProfilePage() {
     },
     [toast]
   );
-
-  const handlePhoneChange = (field: any, value: any) => {
-    setPhoneNumbers((prev) => ({ ...prev, [field]: value }));
-    setEditedDetails((prev: any) => ({
-      ...prev,
-      [field]: value.number,
-      [`${field}CountryCode`]: value.countryCode,
-    }));
-  };
 
   const toggleEdit = () => {
     if (isEditing) {
@@ -373,14 +255,6 @@ export default function ProfilePage() {
       });
     }
     setIsEditing(!isEditing);
-  };
-
-  const handleInputChange = (key: string, value: any) => {
-    setEditedDetails((prev: any) => ({ ...prev, [key]: value }));
-  };
-
-  const handleTagsChange = (newTags: string[]) => {
-    setEditedDetails((prev: any) => ({ ...prev, skills: newTags }));
   };
 
   const validateForm = () => {
@@ -428,10 +302,6 @@ export default function ProfilePage() {
     } else {
       console.log("Form validation failed");
     }
-  };
-
-  const getWillingToTravelDisplay = (value: boolean) => {
-    return value ? "Yes" : "No";
   };
 
   const handleAvatarClick = () => {
@@ -484,6 +354,18 @@ export default function ProfilePage() {
     try {
       let payload = new FormData();
 
+      // Transform skills into the required format
+      const transformedSkills = [
+        ...(editedDetails.primarySkills || []).map((skill) => ({
+          skill,
+          priority: 1,
+        })),
+        ...(editedDetails.secondarySkills || []).map((skill) => ({
+          skill,
+          priority: 2,
+        })),
+      ];
+
       // Create the requestedData object
       const updatedProfileData: Partial<UserDetails> = {
         userId: editedDetails.userId,
@@ -498,7 +380,7 @@ export default function ProfilePage() {
           editedDetails.alternateMobileNumberCountryCode,
         personalEmail: editedDetails.personalEmail,
         mobileNumber: editedDetails.mobileNumber,
-        skills: editedDetails.skills,
+        skills: transformedSkills,
         willingToTravel: editedDetails.willingToTravel,
         employmentType: editedDetails.employmentType,
         shiftTiming: editedDetails.shiftTiming,
@@ -547,6 +429,8 @@ export default function ProfilePage() {
 
       console.log("Profile update response:", response);
       updateUserDetails(response.data.response.data);
+      // Call fetch-user-info API after successful update
+      await fetchUserDetails();
 
       // Handle success (e.g., show a success message, update local state)
     } catch (error) {
@@ -701,7 +585,9 @@ export default function ProfilePage() {
                 {isEditing && (
                   <Button onClick={handleRequestApproval} size="sm">
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    Request for Approval
+                    {userRole === "ROLE_HR"
+                      ? "Update Profile"
+                      : "Request for Approval"}
                   </Button>
                 )}
               </div>
@@ -715,7 +601,6 @@ export default function ProfilePage() {
                 editedDetails={editedDetails}
                 setEditedDetails={setEditedDetails}
                 setIsEditing={setIsEditing}
-                handleRequestApproval={handleRequestApproval}
                 errors={errors}
                 phoneNumbers={phoneNumbers}
                 setPhoneNumbers={setPhoneNumbers}
@@ -723,7 +608,9 @@ export default function ProfilePage() {
             )}
             {selectedNav === "Bank Details" && (
               <Suspense fallback={<div></div>}>
-                <BankDetailsSection />
+                <BankDetailsSection
+                  userId={(userDetails?.userId as string) || ""}
+                />
               </Suspense>
             )}
             {selectedNav === "Documents" && (

@@ -55,7 +55,8 @@ interface UserDetails {
   reportingManagerId?: string;
   reportingMangerName?: string;
   reportingManagerEmail?: string;
-  skills?: string[];
+  primarySkills?: string[];
+  secondarySkills?: string[];
   employmentType?: string;
   department?: string;
   willingToTravel: boolean;
@@ -109,10 +110,22 @@ const UserActionsContext = createContext<UserActionsContextType>({
 
 // Provider component
 export function UserProvider({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const showToast = React.useCallback(
+    (message: string) => {
+      toast({
+        title: "Notification",
+        description: message,
+        variant: "default",
+        className: "fixed bottom-4 right-4  max-w-sm",
+      });
+    },
+    [toast]
+  );
 
   const updateUserDetails = (newDetails: Partial<UserDetails>) => {
     setUserDetails(
@@ -162,7 +175,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         reportingManagerId: userData.reportingManagerId,
         reportingMangerName: userData.reportingMangerName,
         reportingManagerEmail: userData.reportingManagerEmail,
-        skills: userData.skills,
+        primarySkills: userData.primarySkills,
+        secondarySkills: userData.secondarySkills,
         employmentType: userData.employmentType,
         department: userData.department,
         alternateMobileNumber: userData?.alternateMobileNumber,
@@ -201,6 +215,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         description: errorMessage,
         variant: "destructive",
       });
+      handleLogout(navigate, showToast);
     } finally {
       setIsLoading(false);
     }
@@ -289,8 +304,8 @@ export default function Header() {
         { label: "Profile", path: "/manager/profile" },
         { label: "Collaborate", path: "/manager/Collaborate" },
         { label: "Projects", path: "/manager/Projects" },
-        { label: "Employees", path: "/manager/Employees"},
-        { label: "Certificate", path: "/manager/Certificate"},
+        { label: "Employees", path: "/manager/Employees" },
+        { label: "Certificate", path: "/manager/Certificate" },
         { label: "Project_details", path: "/manager/Project_details"},
         { label: "Projectmembers", path: "/manager/Projectmembers"}
       ],
