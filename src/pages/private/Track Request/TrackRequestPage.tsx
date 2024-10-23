@@ -926,7 +926,9 @@ const TrackRequestPage = () => {
         </div>
       </div>
       {isFetchingData ? (
-        <Loading />
+        <div className="flex justify-center items-center h-[calc(100vh-300px)]">
+          <Loading />
+        </div>
       ) : (
         <RequestSection
           title={activePage}
