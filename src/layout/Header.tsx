@@ -20,6 +20,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerClose,
+} from "@/components/ui/drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ui/mode-toggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -27,8 +36,8 @@ import api from "@/api/apiService";
 import { useToast } from "@/hooks/use-toast";
 import { handleLogout } from "@/utils/authHandler";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { useDrawer } from "@/hooks/use-drawer";
 
 interface NavItem {
   label: string;
@@ -243,6 +252,7 @@ export function useUserActions() {
 
 export default function Header() {
   const { userDetails, isLoading } = useUser();
+  const { openDrawer, closeDrawer } = useDrawer();
   const { fetchUserDetails } = useUserActions();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -254,6 +264,8 @@ export default function Header() {
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [activeNavItem, setActiveNavItem] = useState<NavItem | null>(null);
   const showToast = React.useCallback(
     (message: string) => {
       toast({
@@ -336,8 +348,22 @@ export default function Header() {
       // Add more role-based navigation items as needed
     };
 
-    setNavItems(roleBasedNavItems[userRole as string] || []);
-  }, [userRole]);
+    const currentNavItems = roleBasedNavItems[userRole as string] || [];
+    setNavItems(currentNavItems);
+
+    // Check if the current path is in the nav items
+    const isPathInNavItems = (items: NavItem[]): boolean => {
+      return items.some(
+        (item) =>
+          location.pathname.startsWith(item.path) ||
+          (item.children && isPathInNavItems(item.children))
+      );
+    };
+
+    if (!isPathInNavItems(currentNavItems)) {
+      closeDrawer();
+    }
+  }, [userRole, location.pathname]);
 
   const onLogout = () => {
     handleLogout(navigate, showToast);
@@ -380,50 +406,47 @@ export default function Header() {
   const renderNavItems = (items: NavItem[]) => {
     return items.map((item, index) => (
       <div key={index} className="relative group">
-        {item.children ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className={`px-3 py-1 text-md font-semibold text-primary hover:border rounded-sm hover:border-primary hover:bg-primary/10 ${isActive(
-                item.path
-              )} flex items-center`}
-            >
-              {item.label}
-              <ChevronDown className="ml-1 h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-52">
-              {item.children.map((child, childIndex) => (
-                <React.Fragment key={childIndex}>
-                  <DropdownMenuItem>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        navigate(child.path);
-                        setIsOpen(false);
-                      }}
-                      className="w-full bg-secondary px-3 py-1 hover:bg-primary hover:text-secondary border-none"
-                    >
-                      {child.label}
-                    </Button>
-                  </DropdownMenuItem>
-                  <Separator />
-                </React.Fragment>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <Link
-            to={item.path}
-            className={`px-3 py-1 text-md font-semibold text-primary hover:border rounded-sm hover:border-primary hover:bg-primary/10 ${isActive(
-              item.path
-            )}`}
-          >
-            {item.label}
-          </Link>
-        )}
+        <Button
+          variant="ghost"
+          className={`px-3 py-1 text-md font-semibold text-primary hover:border rounded-sm hover:border-primary hover:bg-primary/10 ${isActive(
+            item.path
+          )}`}
+          onClick={() => {
+            if (item.children && item.children.length > 0) {
+              // Navigate to the first child's path
+              navigate(item.children[0].path);
+              // Open the drawer with the parent item's content
+              openDrawer({
+                title: item.label,
+                content: (
+                  <div className="space-y-2">
+                    {item.children.map((child, childIndex) => (
+                      <Button
+                        key={childIndex}
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => child.path} // This returns the path
+                        path={child.path} // This provides the path directly
+                      >
+                        {child.label}
+                      </Button>
+                    ))}
+                  </div>
+                ),
+              });
+            } else {
+              closeDrawer();
+              navigate(item.path);
+            }
+          }}
+        >
+          {item.label}
+          {item.children && <ChevronRight className="ml-1 h-4 w-4" />}
+        </Button>
       </div>
     ));
   };
+
   const SheetNavigation = ({
     navItems,
     setSheetOpen,
@@ -463,7 +486,6 @@ export default function Header() {
               toggleItem(item.label);
             } else {
               navigate(item.path);
-              setSheetOpen(false);
             }
           }}
         >
@@ -517,87 +539,119 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-background z-10 border-b-2">
-      <div className="flex h-20 md:h-20 items-center justify-between px-4 md:px-10">
-        <div className="flex items-center ">
-          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger className="mr-2 md:hidden">
-              <Menu className="h-6 w-6" />
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72">
-              <SheetNavigation
-                navItems={navItems}
-                setSheetOpen={setSheetOpen}
-                navigate={navigate}
+    <>
+      <header className="fixed top-0 left-0 right-0 bg-background z-10 border-b-2">
+        <div className="flex h-20 md:h-20 items-center justify-between px-4 md:px-10">
+          <div className="flex items-center ">
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+              <SheetTrigger className="mr-2 md:hidden">
+                <Menu className="h-6 w-6" />
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72">
+                <SheetNavigation
+                  navItems={navItems}
+                  setSheetOpen={setSheetOpen}
+                  navigate={navigate}
+                />
+              </SheetContent>
+            </Sheet>
+            <Link to="/" className="flex items-center space-x-2">
+              <img
+                src={companyLogo}
+                alt="Mindgraph"
+                className="h-8 w-22 md:h-14 md:w-26"
+                loading="lazy"
               />
-            </SheetContent>
-          </Sheet>
-          <Link to="/" className="flex items-center space-x-2">
-            <img
-              src={companyLogo}
-              alt="Mindgraph"
-              className="h-8 w-22 md:h-14 md:w-26"
-              loading="lazy"
-            />
-          </Link>
-        </div>
+            </Link>
+          </div>
 
-        <div className="flex items-center space-x-2 md:space-x-4">
-          <ThemeToggle />
-          <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-            <DropdownMenuTrigger className="focus:outline-none">
-              <div className="flex items-center space-x-2">
-                <Avatar className="h-8 w-8 md:h-10 md:w-10">
-                  <AvatarImage
-                    loading="lazy"
-                    className="object-cover"
-                    src={userDetails?.profileUrl}
-                  />
-                  <AvatarFallback>
-                    {userDetails?.firstName?.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden md:block text-sm">
-                  <p className="font-medium">{`${userDetails?.firstName} ${userDetails?.lastName}`}</p>
-                  <p className="text-muted-foreground">{userDetails?.role}</p>
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <ThemeToggle />
+            <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+              <DropdownMenuTrigger className="focus:outline-none">
+                <div className="flex items-center space-x-2">
+                  <Avatar className="h-8 w-8 md:h-10 md:w-10">
+                    <AvatarImage
+                      loading="lazy"
+                      className="object-cover"
+                      src={userDetails?.profileUrl}
+                    />
+                    <AvatarFallback>
+                      {userDetails?.firstName?.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden md:block text-sm">
+                    <p className="font-medium">{`${userDetails?.firstName} ${userDetails?.lastName}`}</p>
+                    <p className="text-muted-foreground">{userDetails?.role}</p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 opacity-80" />
                 </div>
-                <ChevronDown className="h-4 w-4 opacity-80" />
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={() => handleMenuItemClick(profileRenderNavigation())}
-              >
-                <User2 className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              {showTrackRequest && (
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onSelect={() =>
-                    handleMenuItemClick(trackRequestRenderNavigation())
+                    handleMenuItemClick(profileRenderNavigation())
                   }
                 >
-                  <Bell className="mr-2 h-4 w-4" />
-                  Track Request
+                  <User2 className="mr-2 h-4 w-4" />
+                  Profile
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600" onClick={onLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {showTrackRequest && (
+                  <DropdownMenuItem
+                    onSelect={() =>
+                      handleMenuItemClick(trackRequestRenderNavigation())
+                    }
+                  >
+                    <Bell className="mr-2 h-4 w-4" />
+                    Track Request
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-600" onClick={onLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-      </div>
 
-      <nav className="hidden md:block border-t-2 h-14 px-10">
-        <div className="flex gap-8 items-center h-full">
-          {renderNavItems(navItems)}
-        </div>
-      </nav>
-    </header>
+        <nav className="hidden md:block border-t-2 h-14 px-10">
+          <div className="flex gap-8 items-center h-full">
+            {renderNavItems(navItems)}
+          </div>
+        </nav>
+      </header>
+      {/* <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{activeNavItem?.label}</DrawerTitle>
+            <DrawerDescription>Navigate to a sub-section</DrawerDescription>
+          </DrawerHeader>
+          <div className="p-4 space-y-2">
+            {activeNavItem?.children?.map((child, index) => (
+              <Button
+                key={index}
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate(child.path);
+                  setIsDrawerOpen(false);
+                }}
+              >
+                {child.label}
+              </Button>
+            ))}
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline">Close</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer> */}
+    </>
   );
 }
