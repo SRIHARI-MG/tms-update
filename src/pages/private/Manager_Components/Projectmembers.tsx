@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { format } from "date-fns"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import DynamicTable from "@/components/ui/custom-table";
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -18,9 +11,11 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Pencil, Trash2 } from "lucide-react"
+import { Pencil, Trash2, Plus, ChevronsUpDown, Check } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 import api from "@/api/apiService"
 
 interface ProjectMember {
@@ -43,10 +38,19 @@ interface ProjectMember {
   movementReason: string | null
 }
 
+interface Employee {
+  value: string
+  label: string
+}
+
 export default function ProjectMembers() {
   const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [editingMember, setEditingMember] = useState<ProjectMember | null>(null)
+  const [isAddingMember, setIsAddingMember] = useState(false)
+  const [newMember, setNewMember] = useState<Partial<ProjectMember>>({})
+  const [emailValue, setEmailValue] = useState("")
+  const [employees, setEmployees] = useState<Employee[]>([])
 
   const fetchProjectMembers = async () => {
     try {
@@ -62,6 +66,11 @@ export default function ProjectMembers() {
 
   useEffect(() => {
     fetchProjectMembers()
+    // This is a placeholder. Replace with actual API call.
+    setEmployees([
+      { value: "employee1@example.com", label: "Employee 1" },
+      { value: "employee2@example.com", label: "Employee 2" },
+    ])
   }, [])
 
   const handleDelete = async (id: string) => {
@@ -91,195 +100,214 @@ export default function ProjectMembers() {
     }
   }
 
+  const handleAddMember = async () => {
+    try {
+      const response = await api.post("/api/v1/project-members", newMember)
+      setProjectMembers([...projectMembers, response.data])
+      setIsAddingMember(false)
+      setNewMember({})
+      setEmailValue("")
+    } catch (error) {
+      console.error("Error adding new project member:", error)
+    }
+  }
+
+  const columns = [
+    { header: "Employee Name", accessor: "employeeName", sortable: true, filterable: true, width: "15%" },
+    { header: "Role", accessor: "memberRoleOnProject", sortable: true, filterable: true, width: "10%" },
+    { header: "Email", accessor: "projectMemberEmail", sortable: true, filterable: true, width: "20%" },
+    { header: "Sub Project", accessor: "subproject", sortable: true, filterable: true, width: "10%" },
+    { header: "Priority", accessor: "projectPriority", sortable: true, filterable: true, width: "10%" },
+    { header: "Working %", accessor: "projectWorkingPercentage", sortable: true, filterable: true, width: "10%" },
+    { header: "Start Date", accessor: (item: ProjectMember) => format(new Date(item.startDate), 'yyyy-MM-dd'), sortable: true, filterable: true, width: "10%" },
+    { header: "End Date", accessor: (item: ProjectMember) => format(new Date(item.endDate), 'yyyy-MM-dd'), sortable: true, filterable: true, width: "10%" },
+  ]
+
+  const actions = (item: ProjectMember) => (
+    <div className="flex space-x-2">
+      <Button variant="outline" size="icon" onClick={() => handleEdit(item)}>
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Button variant="outline" size="icon" onClick={() => handleDelete(item.projectMemberId)}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  )
+
   if (isLoading) {
     return <div>Loading...</div>
   }
 
   return (
-    <div className="container mx-auto max-w-screen-xl px-10 py-12">
-      <h1 className="text-2xl font-semibold mb-6">Project Members</h1>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Employee Name</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Sub Project</TableHead>
-            <TableHead>Project Priority</TableHead>
-            <TableHead>Working %</TableHead>
-            <TableHead>Start Date</TableHead>
-            <TableHead>End Date</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {projectMembers.map((member) => (
-            <TableRow key={member.projectMemberId}>
-              <TableCell>{member.employeeName}</TableCell>
-              <TableCell>{member.memberRoleOnProject}</TableCell>
-              <TableCell>{member.projectMemberEmail}</TableCell>
-              <TableCell>{member.subproject}</TableCell>
-              <TableCell>{member.projectPriority}</TableCell>
-              <TableCell>{member.projectWorkingPercentage}%</TableCell>
-              <TableCell>{format(new Date(member.startDate), 'yyyy-MM-dd')}</TableCell>
-              <TableCell>{format(new Date(member.endDate), 'yyyy-MM-dd')}</TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="icon" onClick={() => handleEdit(member)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[725px]">
-                      <DialogHeader>
-                        <DialogTitle>Edit Project Member</DialogTitle>
-                      </DialogHeader>
-                      <div className="grid gap-8 py-8">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="name" className="text-right">
-                            Name
-                          </Label>
-                          <Input
-                            id="name"
-                            value={editingMember?.employeeName}
-                            onChange={(e) => setEditingMember({ ...editingMember!, employeeName: e.target.value })}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="role" className="text-right">
-                            Role
-                          </Label>
-                          <Input
-                            id="role"
-                            value={editingMember?.memberRoleOnProject}
-                            onChange={(e) => setEditingMember({ ...editingMember!, memberRoleOnProject: e.target.value })}
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="email" className="text-right">
-                            Email
-                          </Label>
-                          <Input
-                            id="email"
-                            value={editingMember?.projectMemberEmail}
-                            onChange={(e) => setEditingMember({ ...editingMember!, projectMemberEmail: e.target.value })}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="email" className="text-right">
-                            Sub Project
-                          </Label>
-                          <Input
-                            id="subproject"
-                            value={editingMember?.subproject}
-                            onChange={(e) => setEditingMember({ ...editingMember!, subproject: e.target.value })}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="priority" className="text-right">
-                            Priority
-                          </Label>
-                          <Select
-                            onValueChange={(value) => setEditingMember({ ...editingMember!, projectPriority: value })}
-                            defaultValue={editingMember?.projectPriority}
+    <div className="container mx-auto max-w-screen-xl px-1 py-12">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold">Project Members</h1>
+        <Dialog open={isAddingMember} onOpenChange={setIsAddingMember}>
+          <DialogTrigger asChild>
+            <Button onClick={() => setIsAddingMember(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Add Member
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[725px]">
+            <DialogHeader>
+              <DialogTitle>Add New Project Member</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-6 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="newName" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="newName"
+                  value={newMember.employeeName || ''}
+                  onChange={(e) => setNewMember({ ...newMember, employeeName: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="newRole" className="text-right">
+                  Role
+                </Label>
+                <Input
+                  id="newRole"
+                  value={newMember.memberRoleOnProject || ''}
+                  onChange={(e) => setNewMember({ ...newMember, memberRoleOnProject: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="newEmail" className="text-right">
+                  Email
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="col-span-3 justify-between"
+                    >
+                      {emailValue
+                        ? employees.find((employee) => employee.value === emailValue)?.label
+                        : "Select Email"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search Project Owner" />
+                      <CommandEmpty>Email Not Found.</CommandEmpty>
+                      <CommandGroup>
+                        {employees.map((employee) => (
+                          <CommandItem
+                            key={employee.value}
+                            value={employee.value}
+                            onSelect={(currentValue) => {
+                              setEmailValue(currentValue === emailValue ? "" : currentValue)
+                              setNewMember({ ...newMember, projectMemberEmail: currentValue })
+                            }}
                           >
-                            <SelectTrigger className="col-span-3">
-                              <SelectValue placeholder="Select priority" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="LOW">Low</SelectItem>
-                              <SelectItem value="MEDIUM">Medium</SelectItem>
-                              <SelectItem value="HIGH">High</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="percentage" className="text-right">
-                            Working %
-                          </Label>
-                          <Input
-                            id="percentage"
-                            type="number"
-                            value={editingMember?.projectWorkingPercentage}
-                            onChange={(e) => setEditingMember({ ...editingMember!, projectWorkingPercentage: parseFloat(e.target.value) })}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="startDate" className="text-right">
-                            Start Date
-                          </Label>
-                          <Input
-                            id="startDate"
-                            type="date"
-                            value={editingMember?.startDate}
-                            onChange={(e) => setEditingMember({ ...editingMember!, startDate: e.target.value })}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="endDate" className="text-right">
-                            End Date
-                          </Label>
-                          <Input
-                            id="endDate"
-                            type="date"
-                            value={editingMember?.endDate}
-                            onChange={(e) => setEditingMember({ ...editingMember!, endDate: e.target.value })}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="active" className="text-right">
-                            Active
-                          </Label>
-                          <Checkbox
-                            id="active"
-                            checked={editingMember?.activeEmployee}
-                            onCheckedChange={(checked) => setEditingMember({ ...editingMember!, activeEmployee: checked as boolean })}
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="primary" className="text-right">
-                            Primary Project
-                          </Label>
-                          <Checkbox
-                            id="primary"
-                            checked={editingMember?.primaryProject}
-                            onCheckedChange={(checked) => setEditingMember({ ...editingMember!, primaryProject: checked as boolean })}
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="remarks" className="text-right">
-                            Remarks
-                          </Label>
-                          <Input
-                            id="remarks"
-                            value={editingMember?.remarks}
-                            onChange={(e) => setEditingMember({ ...editingMember!, remarks: e.target.value })}
-                            className="col-span-3"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex justify-end">
-                        <Button onClick={() => handleUpdate(editingMember!)}>Save changes</Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                  <Button variant="outline" size="icon" onClick={() => handleDelete(member.projectMemberId)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                emailValue === employee.value ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {employee.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="newSubproject" className="text-right">
+                  Sub Project
+                </Label>
+                <Input
+                  id="newSubproject"
+                  value={newMember.subproject || ''}
+                  onChange={(e) => setNewMember({ ...newMember, subproject: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="newPriority" className="text-right">
+                  Priority
+                </Label>
+                <Select
+                  onValueChange={(value) => setNewMember({ ...newMember, projectPriority: value })}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LOW">Low</SelectItem>
+                    <SelectItem value="MEDIUM">Medium</SelectItem>
+                    <SelectItem value="HIGH">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="newPercentage" className="text-right">
+                  Working %
+                </Label>
+                <Input
+                  id="newPercentage"
+                  type="number"
+                  value={newMember.projectWorkingPercentage || ''}
+                  onChange={(e) => setNewMember({ ...newMember, projectWorkingPercentage: parseFloat(e.target.value) })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="newStartDate" className="text-right">
+                  Start Date
+                </Label>
+                <Input
+                  id="newStartDate"
+                  type="date"
+                  value={newMember.startDate || ''}
+                  onChange={(e) => setNewMember({ ...newMember, startDate: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="newEndDate" className="text-right">
+                  End Date
+                </Label>
+                <Input
+                  id="newEndDate"
+                  type="date"
+                  value={newMember.endDate || ''}
+                  onChange={(e) => setNewMember({ ...newMember, endDate: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="newRemarks" className="text-right">
+                  Remarks
+                </Label>
+                <Input
+                  id="newRemarks"
+                  value={newMember.remarks || ''}
+                  onChange={(e) => setNewMember({ ...newMember, remarks: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleAddMember}>Add Member</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+      <DynamicTable
+        data={projectMembers}
+        columns={columns}
+        actions={actions}
+        itemsPerPage={10}
+      />
     </div>
   )
 }

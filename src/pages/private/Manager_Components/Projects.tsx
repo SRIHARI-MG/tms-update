@@ -14,6 +14,7 @@ import ProjectCard from "@/components/ui/project-card";
 import Loading from "@/components/ui/loading";
 import * as XLSX from "xlsx";
 import ProjectOnboarding from "./ProjectOnboarding";
+import { useNavigate } from "react-router-dom";
 
 interface Project {
   projectId: string;
@@ -33,6 +34,7 @@ interface Project {
 }
 
 const Projects = () => {
+  const navigate = useNavigate();
   const { userDetails } = useUser();
   const [projects, setProjects] = useState<Project[]>([]);
   const [filters, setFilters] = useState({
@@ -90,6 +92,10 @@ const Projects = () => {
   ) => {
     setFilters((prev) => ({ ...prev, [filterType]: value }));
   };
+
+  const handleViewProject = (project: Project) => {
+    navigate(`/manager/Projects/${project.projectId}`)
+  }
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -234,6 +240,7 @@ const Projects = () => {
           data={filteredProjects}
           columns={columns}
           itemsPerPage={10}
+          onClickNavigate={handleViewProject}
           // onClickView={(project) => (
           //   <ProjectCard
           //     projectCode={project.projectCode}

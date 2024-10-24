@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -8,6 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { CalendarIcon, PencilIcon } from "lucide-react"
 import Projectmembers from "./Projectmembers"
+import { useParams } from "react-router-dom"
+import api from "@/api/apiService"
 
 interface Project {
   projectId: string
@@ -31,49 +35,25 @@ interface Project {
   projectManagerName: string | null
 }
 
-const dummyProject: Project = {
-  projectId: "PROJ_3",
-  projectCode: "MG-HRMS-001",
-  subproject: "sub",
-  projectName: "Talent Management System",
-  projectDescription: "A comprehensive system for managing talent within the organization",
-  startDate: "2024-01-13",
-  estimatedEndDate: "2024-03-31",
-  createdOn: "2024-01-14",
-  projectType: "Client",
-  projectStatus: "INPROGRESS",
-  active: true,
-  projectOwner: "sreenivasan.m@mind-graph.com",
-  projectManager: "jayaraman.r@mind-graph.com",
-  projectOwnerProfile: "https://mginterns.blob.core.windows.net/talent-mgmt-be/User40?sp=r&st=2024-06-11T11:14:28Z&se=2030-06-11T19:14:28Z&spr=https&sv=2022-11-02&sr=c&sig=Ckq%2FnHUeWFvdftxecO6saqUf7HJ4MzCCn39mrh%2BunRY%3D",
-  projectOwnerUserId: "MG180328",
-  projectOwnerName: "Sreenivasan M",
-  projectManagerProfile: "https://mginterns.blob.core.windows.net/talent-mgmt-be/User180330?sp=r&st=2024-06-11T11:14:28Z&se=2030-06-11T19:14:28Z&spr=https&sv=2022-11-02&sr=c&sig=Ckq%2FnHUeWFvdftxecO6saqUf7HJ4MzCCn39mrh%2BunRY%3D",
-  projectManagerUserId: "MG180330",
-  projectManagerName: "Jayaraman R",
-}
-
-export default function Project_details() {
-  const [project, setProject] = useState<Project>(dummyProject)
+export default function Project_details( ) {
+  const { projectId } = useParams<{ projectId: string }>()
+  const [project, setProject] = useState<Project | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   useEffect(() => {
     fetchProjectDetails()
-  }, [])
+  }, [projectId])
 
   const fetchProjectDetails = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/projects/PROJ_3')
-      if (!response.ok) {
-        throw new Error('Failed to fetch project details')
-      }
-      const data = await response.json()
-      setProject(data)
+      const response = await api(`/api/v1/project/get-project-byId/${projectId}`)
+      setProject(response.data.response.data)
     } catch (error) {
       console.error('Error fetching project details:', error)
+      setNotification({ message: "Failed to fetch project details. Please try again.", type: 'error' })
     } finally {
       setIsLoading(false)
     }
@@ -81,10 +61,12 @@ export default function Project_details() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setProject(prev => ({ ...prev, [name]: value }))
+    setProject(prev => prev ? { ...prev, [name]: value } : null)
   }
 
   const handleSwitchChange = async (checked: boolean) => {
+    if (!project) return
+
     try {
       const response = await fetch(`/api/projects/${project.projectId}/toggle-active`, {
         method: 'POST',
@@ -98,7 +80,7 @@ export default function Project_details() {
         throw new Error('Failed to update project status')
       }
 
-      setProject(prev => ({ ...prev, active: checked }))
+      setProject(prev => prev ? { ...prev, active: checked } : null)
       setNotification({ message: `Project ${checked ? 'activated' : 'deactivated'} successfully.`, type: 'success' })
     } catch (error) {
       console.error('Error updating project status:', error)
@@ -107,6 +89,8 @@ export default function Project_details() {
   }
 
   const handleSave = async () => {
+    if (!project) return
+
     try {
       const response = await fetch(`/api/projects/${project.projectId}`, {
         method: 'PUT',
@@ -134,6 +118,10 @@ export default function Project_details() {
     return <div className="flex justify-center items-center h-screen">Loading...</div>
   }
 
+  if (!project) {
+    return <div className="flex justify-center items-center h-screen">Project not found</div>
+  }
+
   return (
     <div className="container mx-auto p-4">
       {notification && (
@@ -141,21 +129,20 @@ export default function Project_details() {
           {notification.message}
         </div>
       )}
-      <Card className="w-full max-w-6xl mx-auto">
+      <Card className="w-full max-w-7xl mx-auto">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-2xl font-bold">{project.projectName}</CardTitle>
         </CardHeader>
         <CardContent>
-       
           <Tabs defaultValue="project" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="project">Project Details</TabsTrigger>
               <TabsTrigger value="members">Project Members</TabsTrigger>
             </TabsList>
             <TabsContent value="project">
-            <Button onClick={() => setIsEditing(!isEditing)} variant="outline" size="icon">
-            <PencilIcon className="h-4 w-4" />
-          </Button>
+              <Button onClick={() => setIsEditing(!isEditing)} variant="outline" size="icon">
+                <PencilIcon className="h-4 w-4" />
+              </Button>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -179,7 +166,7 @@ export default function Project_details() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="projectType">Sub Project</Label>
+                    <Label htmlFor="subproject">Sub Project</Label>
                     <Input
                       id="subproject"
                       name="subproject"

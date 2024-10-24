@@ -296,7 +296,7 @@ function App() {
               }
             />
               <Route
-              path="Project_details"
+              path="Projects/:projectId"
               element={
                 <AuthMiddleware allowedRoles={[Roles.ROLE_MANAGER]}>
                   <Project_details />
