@@ -183,7 +183,7 @@ const Projects = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="pb-5">
       <h1 className="text-2xl font-semibold mb-5">Projects</h1>
       <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 mb-4">
 

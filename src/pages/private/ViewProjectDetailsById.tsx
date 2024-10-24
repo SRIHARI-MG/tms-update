@@ -151,7 +151,7 @@ const ViewProjectDetailsById = ({ userId }: { userId?: string }) => {
   }
 
   return (
-    <div className="">
+    <div className="container mx-auto p-4">
       <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 mb-4">
         <Button onClick={clearFilter} className="w-fit sm:w-auto">
           Clear All Filters

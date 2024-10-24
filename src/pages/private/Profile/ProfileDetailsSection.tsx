@@ -139,6 +139,7 @@ export default function ProfileDetailsSection({
   const [userRole, setUserRole] = useState("");
   const [roles, setRoles] = useState<string[]>([]);
   const [designations, setDesignations] = useState<string[]>([]);
+  const isHR = userRole === "ROLE_HR";
 
   useEffect(() => {
     // Fetch roles and designations from API
@@ -274,6 +275,14 @@ export default function ProfileDetailsSection({
                 <p className="text-lg font-semibold">{section.title}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {section.keys.map((key) => {
+                    if (
+                      (key === "dateOfLeaving" ||
+                        key === "offboardingReason" ||
+                        key === "finalInteractionPdfUrl") &&
+                      !isHR
+                    ) {
+                      return null;
+                    }
                     if (key === "dateOfLeaving" && !userDetails?.active) {
                       return (
                         <div key={key} className="flex flex-col gap-2">
@@ -292,7 +301,11 @@ export default function ProfileDetailsSection({
                       );
                     }
 
-                    if (key === "offboardingReason" && !userDetails?.active) {
+                    if (
+                      key === "offboardingReason" &&
+                      !userDetails?.active &&
+                      isHR
+                    ) {
                       return (
                         <div key={key} className="flex flex-col gap-2">
                           <Label
@@ -313,7 +326,8 @@ export default function ProfileDetailsSection({
 
                     if (
                       key === "finalInteractionPdfUrl" &&
-                      !userDetails?.active
+                      !userDetails?.active &&
+                      isHR
                     ) {
                       return (
                         <div key={key} className="flex flex-col gap-2">

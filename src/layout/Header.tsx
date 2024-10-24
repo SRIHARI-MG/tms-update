@@ -313,13 +313,21 @@ export default function Header() {
         },
       ],
       ROLE_MANAGER: [
-        { label: "Profile", path: "/manager/profile" },
-        { label: "Collaborate", path: "/manager/Collaborate" },
-        { label: "Projects", path: "/manager/Projects" },
-        { label: "Employees", path: "/manager/Employees" },
-        { label: "Certificate", path: "/manager/Certificate" },
-        { label: "Project_details", path: "/manager/Project_details"},
-        { label: "Projectmembers", path: "/manager/Projectmembers"}
+        { label: "Dashboard", path: "/manager/dashboard" },
+        {
+          label: "Workspace",
+          path: "/manager/workspace",
+          children: [
+            { label: "Collaborate", path: "/manager/workspace/collaborate" },
+            { label: "Projects", path: "/manager/workspace/projects" },
+            { label: "Employees", path: "/manager/workspace/employees" },
+            { label: "Request Approval", path: "/manager/workspace/request-approval" },
+          ],
+        },
+        // { label: "Collaborate", path: "/manager/Collaborate" },
+
+        // { label: "Project_details", path: "/manager/Project_details" },
+        // { label: "Projectmembers", path: "/manager/Projectmembers" },
       ],
       ROLE_EMPLOYEE: [
         { label: "Dashboard", path: "/employee/dashboard" },

@@ -1,21 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UploadCloud } from "lucide-react";
+import { Download, UploadCloud, X } from "lucide-react";
 import * as XLSX from "xlsx";
 import api from "@/api/apiService";
 import { useToast } from "@/hooks/use-toast";
+import { BULK_ONBOARD_TEMPLATE_FILENAME } from "@/lib/constants";
 
 export default function UploadBulkOnboardForm() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
     }
+  };
+
+  const handleDeleteFile = () => {
+    setFile(null);
+    // Reset the file input
+    // Reset the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    const templateUrl = `${
+      import.meta.env.VITE_PUBLIC_URL
+    }/${BULK_ONBOARD_TEMPLATE_FILENAME}`;
+    console.log(templateUrl);
+    const link = document.createElement("a");
+    link.href = templateUrl;
+    link.download = BULK_ONBOARD_TEMPLATE_FILENAME;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleUpload = async () => {
@@ -31,10 +55,17 @@ export default function UploadBulkOnboardForm() {
     setUploading(true);
 
     try {
-      const data = await readExcelFile(file);
+      const formData = new FormData();
+      formData.append("file", file);
+
       const response = await api.post(
-        "/api/v1/admin/bulk-onboard-employees",
-        data
+        "/api/v1/admin/onboard-employees",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
       toast({
@@ -42,6 +73,7 @@ export default function UploadBulkOnboardForm() {
         description:
           response.data.message || "Employees onboarded successfully",
       });
+      handleDeleteFile();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -52,30 +84,14 @@ export default function UploadBulkOnboardForm() {
       });
     } finally {
       setUploading(false);
-      setFile(null);
     }
-  };
-
-  const readExcelFile = (file: File): Promise<any[]> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false });
-        resolve(jsonData);
-      };
-      reader.onerror = (error) => reject(error);
-      reader.readAsArrayBuffer(file);
-    });
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-4">
         <Input
+          ref={fileInputRef}
           type="file"
           accept=".xlsx, .xls"
           onChange={handleFileChange}
@@ -92,12 +108,30 @@ export default function UploadBulkOnboardForm() {
         </Button>
       </div>
       {file && (
-        <p className="text-sm text-gray-500">Selected file: {file.name}</p>
+        <div className="flex items-center justify-between text-sm text-gray-500">
+          <p>Selected file: {file.name}</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDeleteFile}
+            className="text-red-500 hover:text-red-700"
+          >
+            <X className="h-4 w-4 mr-2" /> Remove
+          </Button>
+        </div>
       )}
+      <Button
+        onClick={handleDownloadTemplate}
+        className="flex items-center space-x-2"
+      >
+        <Download /> <p>Download Template</p>
+      </Button>
       <div className="mt-4">
         <h3 className="text-lg font-semibold mb-2">Instructions:</h3>
+
         <ol className="list-decimal list-inside space-y-2">
           <li>Download the template XLSX file with the required columns.</li>
+
           <li>Fill in the employee details in the template.</li>
           <li>Upload the completed XLSX file using the button above.</li>
           <li>Ensure all required fields are filled correctly.</li>
