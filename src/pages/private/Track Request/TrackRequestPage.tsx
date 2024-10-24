@@ -24,38 +24,63 @@ import {
 import { toast } from "@/hooks/use-toast";
 import Loading from "@/components/ui/loading";
 import { Textarea } from "@/components/ui/textarea";
+import { useLocation, useParams } from "react-router-dom";
+import { title } from "process";
 
 const TrackRequestPage = () => {
   const userRole = localStorage.getItem("role");
+  const location = useLocation();
+  const isRequestApproval = /\/request-approval$/.test(location.pathname);
   const isHR = userRole === "ROLE_HR";
+  const isManager = userRole === "ROLE_MANAGER";
 
-  const requestSections = [
-    {
-      title: "Profile Request",
-      apiUrl: isHR
-        ? "/api/v1/admin/update-request-list"
-        : "/api/v1/employee/my-update-requests",
-    },
-    {
-      title: "Bank Details Request",
-      apiUrl: isHR
-        ? "/api/v1/bankDetails/update-request-list"
-        : "/api/v1/bankDetails/my-bank-details-update-requests",
-    },
-    {
-      title: "Documents Request",
-      apiUrl: isHR
-        ? "/api/v1/document/update-request-list"
-        : "/api/v1/document/my-document-update-requests",
-    },
-  ];
+  const requestSections: { title: string; apiUrl: string }[] = [];
 
-  if (!isHR) {
-    requestSections.push({
-      title: "Certificate Request",
-      apiUrl: "/api/v1/certificate/my-certificate-update-requests",
-    });
+  if (isRequestApproval) {
+    if (isHR) {
+      requestSections.push(
+        {
+          title: "Profile Request",
+          apiUrl: "/api/v1/admin/update-request-list",
+        },
+        {
+          title: "Bank Details Request",
+          apiUrl: "/api/v1/bankDetails/update-request-list",
+        },
+        {
+          title: "Documents Request",
+          apiUrl: "/api/v1/document/update-request-list",
+        }
+      );
+    }
+
+    if (isManager) {
+      requestSections.push({
+        title: "Certificate Request",
+        apiUrl: "/api/v1/certificate/update-request-list",
+      });
+    }
+  } else {
+    requestSections.push(
+      {
+        title: "Profile Request",
+        apiUrl: "/api/v1/employee/my-update-requests",
+      },
+      {
+        title: "Bank Details Request",
+        apiUrl: "/api/v1/bankDetails/my-bank-details-update-requests",
+      },
+      {
+        title: "Documents Request",
+        apiUrl: "/api/v1/document/my-document-update-requests",
+      },
+      {
+        title: "Certificate Request",
+        apiUrl: "/api/v1/certificate/my-certificate-update-requests",
+      }
+    );
   }
+
   const [activePage, setActivePage] = useState<string>(
     requestSections[0].title
   );
@@ -91,7 +116,12 @@ const TrackRequestPage = () => {
       }
     };
     fetchData();
-  }, [activeApiUrl]);
+  }, [activeApiUrl, isRequestApproval]);
+
+  useEffect(() => {
+    setActivePage(requestSections[0].title);
+    setActiveApiUrl(requestSections[0].apiUrl);
+  }, [isRequestApproval]);
 
   useEffect(() => {
     if (selectedData) {
@@ -524,7 +554,10 @@ const TrackRequestPage = () => {
 
   const renderDialogContent = () => {
     const renderActionButtons = () => {
-      if (!isHR || selectedData?.requestStatus?.toUpperCase() !== "PENDING") {
+      if (
+        (!isManager && !isHR && !isRequestApproval) ||
+        selectedData?.requestStatus?.toUpperCase() !== "PENDING"
+      ) {
         return null;
       }
 
@@ -864,7 +897,7 @@ const TrackRequestPage = () => {
   return (
     <div className="pb-5">
       <h1 className="text-2xl font-semibold mb-4">
-        {isHR ? "Approval Requests" : "Track Requests"}
+        {isRequestApproval ? "Approval Requests" : "Track Requests"}
       </h1>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
         {/* Mobile Dropdown Navigation */}

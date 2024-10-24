@@ -32,7 +32,7 @@ function Layout() {
       <div className="flex flex-1 overflow-hidden pt-[calc(4rem+2.5rem)] md:pt-[calc(5rem+4.5rem)]">
         {isDrawerOpen && drawerContent && hasChildren && (
           // Sidebar div
-          <div className="w-64 bg-background border-r border-border overflow-y-auto fixed left-0 top-[calc(4rem+1.5rem)] md:top-[calc(5rem+3.5rem)] bottom-0">
+          <div className="w-64 bg-background  shadow-xl shadow-primary/10 overflow-y-auto fixed left-0 top-[calc(4rem+1.5rem)] md:top-[calc(5rem+3.5rem)] bottom-0">
             <div className="p-4 m-2">
               <h2 className="text-lg font-semibold mb-4">
                 {drawerContent.title}

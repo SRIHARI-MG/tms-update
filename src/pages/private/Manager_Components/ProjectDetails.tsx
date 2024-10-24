@@ -123,17 +123,13 @@ export default function Project_details( ) {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="pb-5">
       {notification && (
         <div className={`mb-4 p-4 rounded ${notification.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
           {notification.message}
         </div>
       )}
-      <Card className="w-full max-w-7xl mx-auto">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-2xl font-bold">{project.projectName}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      
           <Tabs defaultValue="project" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="project">Project Details</TabsTrigger>
@@ -308,8 +304,7 @@ export default function Project_details( ) {
               <Projectmembers />
             </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
+        
     </div>
   )
 }

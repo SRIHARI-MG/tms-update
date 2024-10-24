@@ -13,7 +13,7 @@ import {
 
 interface DatePickerProps {
   value: Date | undefined;
-  onChange: (date: Date | undefined) => void;
+  onChange?: (date: Date | undefined) => void;
   readOnly?: boolean;
 }
 

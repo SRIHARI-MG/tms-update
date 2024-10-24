@@ -9,7 +9,7 @@ import {
 } from "./select";
 
 interface PhoneInputProps {
-  value: string | { number: string; countryCode: string };
+  value: string | { number: string; countryCode: string } | null;
   onChange: (value: string | { number: string; countryCode: string }) => void;
   onCountryChange?: (country: string) => void;
   countryCode?: string;
@@ -27,8 +27,8 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   countryCodes,
   placeholder,
 }) => {
-  const isObjectValue = typeof value === "object";
-  const phoneNumber = isObjectValue ? value.number : value;
+  const isObjectValue = typeof value === "object" && value !== null;
+  const phoneNumber = isObjectValue ? value.number : value || "";
   const selectedCountryCode = isObjectValue
     ? value.countryCode
     : countryCode || "+91";
@@ -69,7 +69,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
         </SelectContent>
       </Select>
       <Input
-        type="tel"
+        type="text"
         value={phoneNumber}
         onChange={handlePhoneChange}
         readOnly={readOnly}

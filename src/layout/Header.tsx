@@ -313,11 +313,17 @@ export default function Header() {
         },
       ],
       ROLE_MANAGER: [
-        { label: "Profile", path: "/manager/profile" },
-        { label: "Collaborate", path: "/manager/Collaborate" },
-        { label: "Projects", path: "/manager/Projects" },
-        { label: "Employees", path: "/manager/Employees" },
-        { label: "Certificate", path: "/manager/Certificate" },
+        { label: "Dashboard", path: "/manager/dashboard" },
+        {
+          label: "Workspace",
+          path: "/manager/workspace",
+          children: [
+            { label: "Collaborate", path: "/manager/workspace/collaborate" },
+            { label: "Projects", path: "/manager/workspace/projects" },
+            { label: "Employees", path: "/manager/workspace/employees" },
+            { label: "Request Approval", path: "/manager/workspace/request-approval" },
+          ],
+        },
       ],
       ROLE_EMPLOYEE: [
         { label: "Dashboard", path: "/employee/dashboard" },
@@ -343,11 +349,11 @@ export default function Header() {
         //   ],
         // },
       ],
-      // Add more role-based navigation items as needed
     };
 
     const currentNavItems = roleBasedNavItems[userRole as string] || [];
     setNavItems(currentNavItems);
+
 
     // Check if the current path is in the nav items
     const isPathInNavItems = (items: NavItem[]): boolean => {

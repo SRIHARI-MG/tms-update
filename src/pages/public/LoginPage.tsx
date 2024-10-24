@@ -54,6 +54,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,6 +65,7 @@ export default function LoginPage() {
   });
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
     try {
       localStorage.removeItem("authToken");
       localStorage.removeItem("role");
@@ -101,6 +103,8 @@ export default function LoginPage() {
         variant: "destructive",
         className: "fixed bottom-4 right-4  max-w-sm",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -173,7 +177,11 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <LoadingButton type="submit" className="w-full">
+              <LoadingButton
+                type="submit"
+                className="w-full"
+                isLoading={isLoading}
+              >
                 Login
               </LoadingButton>
             </form>

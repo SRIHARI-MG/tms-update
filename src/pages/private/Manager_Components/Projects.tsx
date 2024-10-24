@@ -94,8 +94,8 @@ const Projects = () => {
   };
 
   const handleViewProject = (project: Project) => {
-    navigate(`/manager/Projects/${project.projectId}`)
-  }
+    navigate(`/manager/workspace/projects/${project.projectId}`);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -111,20 +111,21 @@ const Projects = () => {
   };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredProjects.map(proj => ({
-      "Project Code": proj.projectCode,
-      "Project Name": proj.projectName,
-      "Sub Project": proj.subproject,
-      "Project Description": proj.projectDescription,
-      "Start Date": proj.startDate,
-      "Estimated End Date": proj.estimatedEndDate,
-      "Project Type": proj.projectType,
-      "Utilization Percentage": proj.utilizationPercentage,
-      "Project Status": proj.projectStatus,
-      "Project Owner": proj.projectOwner,
-      "Project Manager": proj.projectManager,
-
-    })));
+    const worksheet = XLSX.utils.json_to_sheet(
+      filteredProjects.map((proj) => ({
+        "Project Code": proj.projectCode,
+        "Project Name": proj.projectName,
+        "Sub Project": proj.subproject,
+        "Project Description": proj.projectDescription,
+        "Start Date": proj.startDate,
+        "Estimated End Date": proj.estimatedEndDate,
+        "Project Type": proj.projectType,
+        "Utilization Percentage": proj.utilizationPercentage,
+        "Project Status": proj.projectStatus,
+        "Project Owner": proj.projectOwner,
+        "Project Manager": proj.projectManager,
+      }))
+    );
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Projects");
@@ -189,12 +190,11 @@ const Projects = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="pb-5">
       <h1 className="text-2xl font-semibold mb-5">Projects</h1>
       <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 mb-4">
-
         <ProjectOnboarding onProjectAdded={fetchProjects} />
-        
+
         <Button onClick={clearFilter} className="w-fit sm:w-auto">
           Clear All Filters
         </Button>
