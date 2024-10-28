@@ -1,7 +1,8 @@
 import React from "react";
 
-const ViewerDashboard = () => {
-  return <div>ViewerDashboard</div>;
+
+const Viewerdashboard = () => {
+  return <div>Viewer Dashboard</div>;
 };
 
-export default ViewerDashboard;
+export default Viewerdashboard;

@@ -349,6 +349,32 @@ export default function Header() {
         //   ],
         // },
       ],
+
+      ROLE_VIEWER: [
+        { label: "Dashboard", path: "/viewer/Viewerdashboard" },
+
+        {
+          label: "Workspace",
+          path: "/viewer/workspace",
+          children: [
+            { label: "Collaborate", path: "/viewer/workspace/viewercollaborate" },
+            { label: "Employees", path: "/viewer/workspace/vieweremployee" },
+          ],
+        },
+      ],
+
+      ROLE_RECRUITER: [
+        { label: "Dashboard", path: "/recruiter/RecruiterDashboard" },
+
+        {
+          label: "Workspace",
+          path: "/recruiter/workspace",
+          children: [
+            { label: "Collaborate", path: "/recruiter/workspace/Recruitercollaborate" },
+           
+          ],
+        },
+      ],
     };
 
     const currentNavItems = roleBasedNavItems[userRole as string] || [];
@@ -393,7 +419,7 @@ export default function Header() {
       result = "/superadmin/profile";
     } else if (userRole === "ROLE_RECRUITER") {
       result = "/recruiter/profile";
-    }
+    } 
     return result;
   };
 

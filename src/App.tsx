@@ -22,6 +22,11 @@ import Certificateslist from "./pages/private/Certificateslist";
 import ProjectDetails from "./pages/private/Manager_Components/ProjectDetails";
 import Projectmembers from "./pages/private/Manager_Components/Projectmembers";
 import EmployeeOnboardForm from "./pages/private/EmployeeOnboardForm";
+import Viewerdashboard from "./pages/private/Viewer_Components/Viewerdashboard";
+import Vieweremployee from "./pages/private/Viewer_Components/Vieweremployee";
+import Viewercollaborate from "./pages/private/Viewer_Components/viewercollaborate";
+import Viewerempdetails from "./pages/private/Viewer_Components/Viewerempdetails";
+import RecruiterDashboard from "./pages/private/Recruiter_Components/RecruiterDashboard";
 
 // Lazy loaded components
 const LoginPage = lazy(() => import("@/pages/public/LoginPage"));
@@ -344,6 +349,77 @@ function App() {
               />
             </Route>
           </Route>
+
+
+            {/* Viewer Routes */}
+            <Route path="viewer">
+            <Route
+              path="Viewerdashboard"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_VIEWER]}>
+                  <Viewerdashboard />
+                </AuthMiddleware>
+              }
+            />
+             <Route
+              path="profile"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_VIEWER]}>
+                  <ProfilePage />
+                </AuthMiddleware>
+              }
+            />
+            <Route path="workspace">
+              <Route
+                path="vieweremployee"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_VIEWER]}>
+                    <Vieweremployee />
+                  </AuthMiddleware>
+                }
+              />
+              <Route
+                path="vieweremployee/:userId"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_VIEWER]}>
+                    <Viewerempdetails />
+                  </AuthMiddleware>
+                }
+              />
+               <Route
+                path="viewercollaborate"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_VIEWER]}>
+                    <Viewercollaborate />
+                  </AuthMiddleware>
+                }
+              />
+              </Route>
+
+          
+
+             
+          </Route>
+
+            {/* Recruiter Routes */}
+            <Route path="recruiter">
+            <Route
+              path="RecruiterDashboard"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_RECRUITER]}>
+                  <RecruiterDashboard />
+                </AuthMiddleware>
+              }
+            />
+            <Route
+              path="profile"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.ROLE_RECRUITER]}>
+                  <ProfilePage />
+                </AuthMiddleware>
+              }
+            />
+            </Route>
 
           {/* Add other role routes similarly */}
         </Route>
