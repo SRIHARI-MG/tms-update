@@ -33,11 +33,12 @@ const TrackRequestPage = () => {
   const isRequestApproval = /\/request-approval$/.test(location.pathname);
   const isHR = userRole === "ROLE_HR";
   const isManager = userRole === "ROLE_MANAGER";
+  const isSuperadmin = userRole === "SUPER_ADMIN";
 
   const requestSections: { title: string; apiUrl: string }[] = [];
 
   if (isRequestApproval) {
-    if (isHR) {
+    if (isHR || isSuperadmin) {
       requestSections.push(
         {
           title: "Profile Request",

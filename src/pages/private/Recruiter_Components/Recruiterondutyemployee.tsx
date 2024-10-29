@@ -112,8 +112,6 @@ interface UserDetails {
   reportingManager: boolean;
 }
 
-
-
 const offboardingSchema = z.object({
   dateOfLeaving: z.date({
     required_error: "Date of leaving is required",
@@ -133,7 +131,7 @@ const alertSchema = z.object({
     }),
 });
 
-const OnDutyEmployees = () => {
+const Recruiterondutyemployee = () => {
   const [employees, setEmployees] = useState<UserDetails[]>([]);
   const [filters, setFilters] = useState({
     role: "all",
@@ -178,8 +176,6 @@ const OnDutyEmployees = () => {
     setSelectedEmployee(employee);
     setIsOffboardModalOpen(true);
   };
-  const userRole = localStorage.getItem("role");
-  const isSuperadmin = userRole === "SUPER_ADMIN";
 
   const handleOffboardSubmit = async () => {
     if (!selectedEmployee) return;
@@ -757,12 +753,6 @@ const OnDutyEmployees = () => {
 
   const handleViewEmployee = (employee: UserDetails) => {
     console.log("Viewing employee:", employee);
-    if(isSuperadmin){
-      navigate(`/superadmin/workspace/onduty-employees/${employee.userId}`, {
-        state: { employeeDetails: employee },
-      });
-      
-    }
     navigate(`/hr/employee-hub/onduty-employees/${employee.userId}`, {
       state: { employeeDetails: employee },
     });
@@ -943,10 +933,10 @@ const OnDutyEmployees = () => {
           </PopoverContent>
         </Popover>
 
-        <Button onClick={() => navigate("/hr/employee-hub/onboard-employee")}>
+        {/* <Button onClick={() => navigate("/hr/employee-hub/onboard-employee")}>
           <PlusCircle className="w-4 h-4 mr-2" />
           Onboard Employee
-        </Button>
+        </Button> */}
       </div>
 
       <div className="overflow-x-auto">
@@ -1142,4 +1132,4 @@ const OnDutyEmployees = () => {
   );
 };
 
-export default OnDutyEmployees;
+export default Recruiterondutyemployee;

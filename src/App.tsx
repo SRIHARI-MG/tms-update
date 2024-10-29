@@ -27,6 +27,10 @@ import Vieweremployee from "./pages/private/Viewer_Components/Vieweremployee";
 import Viewercollaborate from "./pages/private/Viewer_Components/viewercollaborate";
 import Viewerempdetails from "./pages/private/Viewer_Components/Viewerempdetails";
 import RecruiterDashboard from "./pages/private/Recruiter_Components/RecruiterDashboard";
+import Recruitercollaborate from "./pages/private/Recruiter_Components/Recruitercollaborate";
+import Recruiterondutyemployee from "./pages/private/Recruiter_Components/Recruiterondutyemployee";
+import Recruiteroffboard from "./pages/private/Recruiter_Components/Recruiteroffboard";
+import SuperAdminDashboard from "./pages/private/Super_Admin_Components/SuperAdminDashboard";
 
 // Lazy loaded components
 const LoginPage = lazy(() => import("@/pages/public/LoginPage"));
@@ -419,6 +423,107 @@ function App() {
                 </AuthMiddleware>
               }
             />
+            <Route path="workspace">
+              
+               <Route
+                path="Recruitercollaborate"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_RECRUITER]}>
+                    <Recruitercollaborate />
+                  </AuthMiddleware>
+                }
+              />
+             
+              <Route
+                path="Recruiterondutyemployee"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_RECRUITER]}>
+                    <Recruiterondutyemployee />
+                  </AuthMiddleware>
+                }
+              />
+              <Route
+                path="Recruiteroffboard"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.ROLE_RECRUITER]}>
+                    <Recruiteroffboard />
+                  </AuthMiddleware>
+                }
+              />
+              </Route>
+            </Route>
+
+            {/* Superadmin Routes */}
+            <Route path="superadmin">
+            <Route
+              path="SuperAdminDashboard"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.SUPER_ADMIN]}>
+                  <SuperAdminDashboard />
+                </AuthMiddleware>
+              }
+            />
+             <Route
+              path="profile"
+              element={
+                <AuthMiddleware allowedRoles={[Roles.SUPER_ADMIN]}>
+                  <ProfilePage />
+                </AuthMiddleware>
+              }
+            />
+             <Route path="workspace">
+              
+              <Route
+               path="collaborate"
+               element={
+                 <AuthMiddleware allowedRoles={[Roles.SUPER_ADMIN]}>
+                   <Recruitercollaborate />
+                 </AuthMiddleware>
+               }
+             />
+              <Route
+                path="onduty-employees"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.SUPER_ADMIN]}>
+                    <OnDutyEmployees />
+                  </AuthMiddleware>
+                }
+              />
+              <Route
+                path="onduty-employees/:userId"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.SUPER_ADMIN]}>
+                    <EmployeeProfilePage />
+                  </AuthMiddleware>
+                }
+              />
+               <Route
+                path="onboard-employee"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.SUPER_ADMIN]}>
+                    <EmployeeOnboardForm />
+                  </AuthMiddleware>
+                }
+              />
+               <Route
+                path="offboarded"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.SUPER_ADMIN]}>
+                    <Recruiteroffboard />
+                  </AuthMiddleware>
+                }
+              />
+              <Route
+                path="request-approval"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.SUPER_ADMIN]}>
+                    <TrackRequestPage />
+                  </AuthMiddleware>
+                }
+              />
+            
+           
+             </Route>
             </Route>
 
           {/* Add other role routes similarly */}

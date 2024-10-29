@@ -19,8 +19,8 @@ export const defaultRedirectPerRole: Record<RoleType, string> = {
   ROLE_EMPLOYEE: "/employee/dashboard",
   ROLE_MANAGER: "/manager/dashboard",
   ROLE_VIEWER: "/viewer/Viewerdashboard",
-  SUPER_ADMIN: "/superadmin/dashboard",
-  ROLE_RECRUITER: "/recruiter/dashboard",
+  SUPER_ADMIN: "/superadmin/SuperAdminDashboard",
+  ROLE_RECRUITER: "/recruiter/RecruiterDashboard",
 };
 
 // You might also want to add route configurations

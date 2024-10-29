@@ -371,9 +371,27 @@ export default function Header() {
           path: "/recruiter/workspace",
           children: [
             { label: "Collaborate", path: "/recruiter/workspace/Recruitercollaborate" },
+            { label: "Onboard", path: "/recruiter/workspace/Recruiterondutyemployee" },
+            { label: "Offboarded", path: "/recruiter/workspace/Recruiteroffboard" },
            
           ],
         },
+      ],
+      SUPER_ADMIN: [
+        { label: "Dashboard", path: "/superadmin/SuperAdminDashboard" },
+        {
+          label: "Employee",
+          path: "/superadmin/workspace",
+          children: [
+            { label: "Collaborate", path: "/superadmin/workspace/collaborate" },
+            { label: "Onboard", path: "/superadmin/workspace/onduty-employees" },
+            { label: "Offboarded", path: "/superadmin/workspace/offboarded" },
+            { label: "Track Request", path: "/superadmin/workspace/request-approval" },
+           
+          ],
+        },
+
+       
       ],
     };
 
