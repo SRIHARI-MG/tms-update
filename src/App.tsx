@@ -493,7 +493,7 @@ function App() {
                 path="onduty-employees/:userId"
                 element={
                   <AuthMiddleware allowedRoles={[Roles.SUPER_ADMIN]}>
-                    <EmployeeProfilePage />
+                   <EmployeeProfilePage />
                   </AuthMiddleware>
                 }
               />

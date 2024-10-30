@@ -760,12 +760,16 @@ const OnDutyEmployees = () => {
     if(isSuperadmin){
       navigate(`/superadmin/workspace/onduty-employees/${employee.userId}`, {
         state: { employeeDetails: employee },
+      }
+    );
+      
+    }else {
+      navigate(`/hr/employee-hub/onduty-employees/${employee.userId}`, {
+        state: { employeeDetails: employee },
       });
       
     }
-    navigate(`/hr/employee-hub/onduty-employees/${employee.userId}`, {
-      state: { employeeDetails: employee },
-    });
+   
   };
 
   const handleDateChange = (newDate: Date | undefined) => {
