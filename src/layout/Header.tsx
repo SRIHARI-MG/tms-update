@@ -385,7 +385,7 @@ export default function Header() {
           children: [
             { label: "Collaborate", path: "/superadmin/workspace/collaborate" },
             { label: "Onboard", path: "/superadmin/workspace/onduty-employees" },
-            { label: "Offboarded", path: "/superadmin/workspace/offboarded" },
+            { label: "Offboarded", path: "/superadmin/workspace/offboarded-employees" },
             { label: "Track Request", path: "/superadmin/workspace/request-approval" },
            
           ],

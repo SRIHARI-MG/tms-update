@@ -947,7 +947,15 @@ const OnDutyEmployees = () => {
           </PopoverContent>
         </Popover>
 
-        <Button onClick={() => navigate("/hr/employee-hub/onboard-employee")}>
+        <Button onClick={() => {
+          if(isSuperadmin){
+            navigate("/superadmin/workspace/onboard-employee")
+
+          } else {
+            navigate("/hr/employee-hub/onboard-employee")
+          }
+           }
+         }>
           <PlusCircle className="w-4 h-4 mr-2" />
           Onboard Employee
         </Button>

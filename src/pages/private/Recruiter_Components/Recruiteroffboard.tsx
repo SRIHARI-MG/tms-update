@@ -111,6 +111,8 @@ const Recruiteroffboard = () => {
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const navigate = useNavigate();
+  const userRole = localStorage.getItem("role");
+  const isSuperadmin = userRole === "SUPER_ADMIN";
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -505,9 +507,17 @@ const Recruiteroffboard = () => {
 
   const handleViewEmployee = (employee: UserDetails) => {
     console.log("Viewing offboarded employee:", employee);
-    navigate(`/hr/employee-hub/offboarded-employees/${employee.userId}`, {
-      state: { employeeDetails: employee },
-    });
+    if(isSuperadmin){
+      navigate(`/superadmin/workspace/offboarded-employees/${employee.userId}`, {
+        state: { employeeDetails: employee },
+      });
+
+    } else {
+      navigate(`/hr/employee-hub/offboarded-employees/${employee.userId}`, {
+        state: { employeeDetails: employee },
+      });
+    }
+    
   };
 
   if (isFetchingData) {

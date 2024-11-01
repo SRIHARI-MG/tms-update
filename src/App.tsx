@@ -506,10 +506,18 @@ function App() {
                 }
               />
                <Route
-                path="offboarded"
+                path="offboarded-employees"
                 element={
                   <AuthMiddleware allowedRoles={[Roles.SUPER_ADMIN]}>
                     <Recruiteroffboard />
+                  </AuthMiddleware>
+                }
+              />
+               <Route
+                path="offboarded-employees/:userId"
+                element={
+                  <AuthMiddleware allowedRoles={[Roles.SUPER_ADMIN]}>
+                    <EmployeeProfilePage />
                   </AuthMiddleware>
                 }
               />
